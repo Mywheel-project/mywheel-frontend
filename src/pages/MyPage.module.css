@@ -1,0 +1,321 @@
+.page {
+  width: 100%;
+  min-height: calc(100vh - 70px);
+  background-color: #ffffff;
+  padding: 2rem 2.5rem 3rem;
+  box-sizing: border-box;
+}
+
+.layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(420px, 1.6fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.leftColumn,
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.card {
+  background-color: #d9d9d9;
+  border-radius: 28px;
+  padding: 1.4rem 1.5rem;
+  box-sizing: border-box;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #111;
+}
+
+.redBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  background-color: #d40000;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.45rem 1rem;
+  border-radius: 10px;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.redBtn:hover {
+  background-color: #b80000;
+}
+
+/* 프로필 */
+.profileRow {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar img,
+.avatar svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.nickname {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #111;
+}
+
+.email {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.editBtn {
+  margin-top: 0.35rem;
+  border: none;
+  cursor: pointer;
+  background-color: #b0b0b0;
+  color: #111;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.editBtn:hover {
+  background-color: #9a9a9a;
+}
+
+/* 차량 정보 */
+.carCard {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.carImageWrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 0.25rem 0 1rem;
+}
+
+.carImage {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.specList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.specList li {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111;
+}
+
+/* 갤러리 */
+.galleryCard {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.galleryInner {
+  background-color: #ffffff;
+  border-radius: 18px;
+  padding: 1rem;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.galleryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.galleryItem {
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #ececec;
+}
+
+.galleryItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 휠 즐겨찾기 */
+.favoritesCard .cardTitle {
+  margin-bottom: 1.25rem;
+}
+
+.carousel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.arrowBtn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: #111;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.arrowBtn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.wheelList {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  min-width: 0;
+}
+
+.wheelItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.wheelItem:hover .wheelName {
+  color: #d40000;
+}
+
+.wheelItem:focus-visible {
+  outline: 2px solid #d40000;
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.wheelImageWrap {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #cfcfcf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wheelImageWrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.wheelName {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111;
+  transition: color 0.15s ease;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .galleryInner {
+    max-height: 420px;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .galleryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .wheelList {
+    grid-template-columns: 1fr;
+  }
+
+  .wheelImageWrap {
+    width: 96px;
+    height: 96px;
+  }
+
+  .cardHeader {
+    flex-wrap: wrap;
+  }
+}
