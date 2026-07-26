@@ -2,17 +2,19 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
+import PostList from './PostList';
+import PostCreate from './PostCreate';
 
 function App() {
   return (
     <Router>
+      {/* 공통 헤더는 최상단에 딱 한 번만 렌더링되도록 유지합니다 */}
       <Header />
+      
       <Routes>
         <Route path="/" element={<Home />} />
-        {/* 추후에 완성될 다른 페이지들 */}
-        {/* <Route path="/custom" element={<CustomPage />} /> */}
-        {/* <Route path="/map" element={<MapPage />} /> */}
-        {/* <Route path="/community" element={<CommunityPage />} /> */}
+        <Route path="/community" element={<PostList />} />
+        <Route path="/community/create" element={<PostCreate />} />
       </Routes>
     </Router>
   );

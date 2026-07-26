@@ -9,9 +9,8 @@ function PostCreate({ onBack }) {
   // 이미지 파일 선택 시 미리보기 생성 함수
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-    // 선택한 파일들을 브라우저에서 볼 수 있는 임시 URL로 변환
     const newImageUrls = files.map(file => URL.createObjectURL(file));
-    setImages(prev => [...prev, ...newImageUrls]); // 기존 이미지에 추가
+    setImages(prev => [...prev, ...newImageUrls]);
   };
 
   // 등록 완료 버튼 클릭 시
@@ -22,26 +21,13 @@ function PostCreate({ onBack }) {
       return;
     }
     alert('게시글이 성공적으로 등록되었습니다! (임시)');
-    onBack(); // 작성 완료 후 목록 화면으로 돌아가기
+    onBack();
   };
 
   return (
     <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, padding: 0 }}>
       
-      {/* 상단 네비게이션 바 (공통) */}
-      <div style={{ backgroundColor: '#333', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 50px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '5px 10px', borderRadius: '50%', fontWeight: 'bold' }}>🚗</span>
-          <span style={{ fontSize: '20px', fontWeight: 'bold', fontStyle: 'italic' }}>MY wheel</span>
-        </div>
-        <div style={{ display: 'flex', gap: '30px', fontSize: '15px', fontWeight: 'bold' }}>
-          <span>MAP</span>
-          <span>CUSTOM</span>
-          <span style={{ color: '#e74c3c', borderBottom: '2px solid #e74c3c', paddingBottom: '3px' }}>COMMUNITY</span>
-          <span>MY PAGE</span>
-          <span>로그인/회원가입</span>
-        </div>
-      </div>
+      
 
       {/* 메인 글쓰기 폼 영역 */}
       <div style={{ maxWidth: '900px', margin: '40px auto', backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
@@ -94,7 +80,6 @@ function PostCreate({ onBack }) {
           <div style={{ marginBottom: '30px' }}>
             <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#444' }}>사진 첨부</label>
             
-            {/* 파일 선택 버튼 숨기고 커스텀 레이블 사용 */}
             <label style={{ display: 'inline-block', backgroundColor: '#eaeaea', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', color: '#555', marginBottom: '15px' }}>
               📁 이미지 파일 선택 (여러 장 가능)
               <input 
@@ -106,7 +91,6 @@ function PostCreate({ onBack }) {
               />
             </label>
 
-            {/* 선택한 이미지 미리보기 썸네일 리스트 */}
             <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
               {images.map((imgSrc, index) => (
                 <div key={index} style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #ddd' }}>
@@ -116,7 +100,7 @@ function PostCreate({ onBack }) {
             </div>
           </div>
 
-          {/* 하단 버튼 그룹 (취소 / 등록) */}
+          {/* 하단 버튼 그룹 */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px' }}>
             <button 
               type="button" 

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 function PostList() {
   const [currentTab, setCurrentTab] = useState('All');
   
-  // 🌟 모달 팝업 열림/닫힘 상태 관리 (true면 팝업 뜸, false면 안 뜸)
+  // 모달 팝업 열림/닫힘 상태 관리
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 글쓰기 폼 내부 입력 상태
@@ -46,20 +46,7 @@ function PostList() {
   return (
     <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, padding: 0, position: 'relative' }}>
       
-      {/* 1. 상단 네비게이션 바 */}
-      <div style={{ backgroundColor: '#333', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 50px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ backgroundColor: '#e74c3c', color: 'white', padding: '5px 10px', borderRadius: '50%', fontWeight: 'bold' }}>🚗</span>
-          <span style={{ fontSize: '20px', fontWeight: 'bold', fontStyle: 'italic' }}>MY wheel</span>
-        </div>
-        <div style={{ display: 'flex', gap: '30px', fontSize: '15px', fontWeight: 'bold' }}>
-          <span>MAP</span>
-          <span>CUSTOM</span>
-          <span style={{ color: '#e74c3c', borderBottom: '2px solid #e74c3c', paddingBottom: '3px' }}>COMMUNITY</span>
-          <span>MY PAGE</span>
-          <span>로그인/회원가입</span>
-        </div>
-      </div>
+      
 
       {/* 2. 메인 컨텐츠 영역 */}
       <div style={{ maxWidth: '1100px', margin: '40px auto', backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
@@ -131,7 +118,7 @@ function PostList() {
             </div>
           </div>
 
-          {/* 우측 HOT 게시물 (CO-3 영역) */}
+          {/* 우측 HOT 게시물 영역 */}
           <div style={{ flex: 1, backgroundColor: '#fcfcfc', padding: '20px', borderRadius: '8px', border: '1px solid #e0e0e0', height: 'fit-content' }}>
             <h4 style={{ margin: '0 0 15px 0', color: '#333', borderBottom: '2px solid #e74c3c', paddingBottom: '8px', fontSize: '15px' }}>🔥 HOT 게시물</h4>
             
@@ -145,7 +132,7 @@ function PostList() {
               ].map((hot, index) => (
                 <div 
                   key={hot.id} 
-                  onClick={() => alert(`HOT 게시글 "${hot.title}" 상세 내용 보기!`)} // 나중에 상세 모달로 연결
+                  onClick={() => alert(`HOT 게시글 "${hot.title}" 상세 내용 보기!`)}
                   style={{ 
                     padding: '10px', 
                     borderRadius: '5px', 
@@ -168,7 +155,7 @@ function PostList() {
 
       </div>
 
-      {/*  3. 새 글 쓰기 모달 팝업 (isModalOpen이 true일 때만 화면 위에 뜸) */}
+      {/* 3. 새 글 쓰기 모달 팝업 */}
       {isModalOpen && (
         <div style={{
           position: 'fixed',
@@ -176,13 +163,12 @@ function PostList() {
           left: 0,
           width: '100vw',
           height: '100vh',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)', // 반투명 배경
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           zIndex: 1000
         }}>
-          {/* 팝업 박스 본체 */}
           <div style={{
             backgroundColor: '#fff',
             width: '600px',
@@ -198,7 +184,6 @@ function PostList() {
             </h2>
 
             <form onSubmit={handleSubmit}>
-              {/* 카테고리 선택 */}
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>카테고리 선택</label>
                 <select 
@@ -212,7 +197,6 @@ function PostList() {
                 </select>
               </div>
 
-              {/* 제목 입력 */}
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>제목</label>
                 <input 
@@ -225,7 +209,6 @@ function PostList() {
                 />
               </div>
 
-              {/* 내용 입력 */}
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>내용</label>
                 <textarea 
@@ -237,7 +220,6 @@ function PostList() {
                 />
               </div>
 
-              {/* 사진 첨부 */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>사진 첨부 (최대 5장)</label>
                 <label style={{ display: 'inline-block', backgroundColor: '#eaeaea', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', color: '#555', marginBottom: '10px' }}>
@@ -250,7 +232,6 @@ function PostList() {
                     style={{ display: 'none' }} 
                   />
                 </label>
-                {/* 미리보기 썸네일 */}
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   {images.map((imgSrc, index) => (
                     <div key={index} style={{ width: '70px', height: '70px', borderRadius: '5px', overflow: 'hidden', border: '1px solid #ddd' }}>
@@ -260,7 +241,6 @@ function PostList() {
                 </div>
               </div>
 
-              {/* 하단 취소 / 등록 버튼 */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                 <button 
                   type="button" 
