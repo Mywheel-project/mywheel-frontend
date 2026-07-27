@@ -53,8 +53,10 @@ const FAVORITE_WHEELS = [
 ];
 
 const VISIBLE_WHEELS = 3;
+const GALLERY_IMAGES_PER_PAGE = 6;
 
 function MyPage() {
+  const [galleryPage, setGalleryPage] = useState(0);
   const [wheelIndex, setWheelIndex] = useState(0);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedWheel, setSelectedWheel] = useState(null);
@@ -75,6 +77,12 @@ function MyPage() {
   };
 
   const visibleWheels = FAVORITE_WHEELS.slice(wheelIndex, wheelIndex + VISIBLE_WHEELS);
+
+  const galleryPageCount = Math.ceil(GALLERY_IMAGES.length / GALLERY_IMAGES_PER_PAGE);
+  const visibleGalleryImages = GALLERY_IMAGES.slice(
+    galleryPage * GALLERY_IMAGES_PER_PAGE,
+    galleryPage * GALLERY_IMAGES_PER_PAGE + GALLERY_IMAGES_PER_PAGE,
+  );
 
   const handleConfirmProfile = ({ name, email, previewUrl }) => {
     setProfile((prev) => ({
@@ -152,12 +160,30 @@ function MyPage() {
             </div>
             <div className={styles.galleryInner}>
               <div className={styles.galleryGrid}>
-                {GALLERY_IMAGES.map((src, index) => (
-                  <div key={index} className={styles.galleryItem}>
-                    <img src={src} alt={`갤러리 사진 ${index + 1}`} />
-                  </div>
-                ))}
+                {visibleGalleryImages.map((src, index) => {
+                  const imageNumber = galleryPage * GALLERY_IMAGES_PER_PAGE + index + 1;
+                  return (
+                    <div key={imageNumber} className={styles.galleryItem}>
+                      <img src={src} alt={`갤러리 사진 ${imageNumber}`} />
+                    </div>
+                  );
+                })}
               </div>
+              {galleryPageCount > 1 && (
+                <div className={styles.galleryPagination} role="navigation" aria-label="갤러리 페이지">
+                  {Array.from({ length: galleryPageCount }, (_, pageIndex) => (
+                    <button
+                      key={pageIndex}
+                      type="button"
+                      className={`${styles.pageBtn} ${galleryPage === pageIndex ? styles.pageBtnActive : ''}`}
+                      onClick={() => setGalleryPage(pageIndex)}
+                      aria-current={galleryPage === pageIndex ? 'page' : undefined}
+                    >
+                      {pageIndex + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
 

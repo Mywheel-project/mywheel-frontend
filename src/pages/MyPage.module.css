@@ -176,8 +176,6 @@
   background-color: #ffffff;
   border-radius: 18px;
   padding: 1rem;
-  max-height: 340px;
-  overflow-y: auto;
 }
 
 .galleryGrid {
@@ -198,6 +196,43 @@
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.galleryPagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.pageBtn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #111;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.pageBtn:hover {
+  border-color: #d40000;
+  color: #d40000;
+}
+
+.pageBtnActive {
+  border-color: #d40000;
+  background-color: #d40000;
+  color: #fff;
+}
+
+.pageBtnActive:hover {
+  color: #fff;
 }
 
 /* 휠 즐겨찾기 */
@@ -292,9 +327,6 @@
     grid-template-columns: 1fr;
   }
 
-  .galleryInner {
-    max-height: 420px;
-  }
 }
 
 @media (max-width: 640px) {
