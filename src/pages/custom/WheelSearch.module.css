@@ -38,7 +38,7 @@
 .inputCard {
   flex: 1;
   height: 60px;
-  background-color: #e5e5e5;
+  background-color: #E9E8E9;
   border: 2px solid #000;
   border-radius: 50px;
   display: flex;
@@ -84,7 +84,7 @@
 .resultCard {
   width: 100%;
   max-width: 1100px;
-  background-color: #e8e8e8;
+  background-color: #E9E8E9;
   border: 2px solid #000;
   border-radius: 30px;
   padding: 2.5rem 3rem;
