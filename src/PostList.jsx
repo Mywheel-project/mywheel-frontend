@@ -1,35 +1,40 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // 페이지 이동을 위한 훅
 
-function PostList() {
+export default function PostList() {
+  const navigate = useNavigate();
   const [currentTab, setCurrentTab] = useState('All');
-  
-  // 모달 팝업 열림/닫힘 상태 관리
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // 새 글 쓰기 팝업 상태
 
   // 글쓰기 폼 내부 입력 상태
   const [category, setCategory] = useState('Tunning Review');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [images, setImages] = useState([]); // 이미지 미리보기 배열
+  const [images, setImages] = useState([]);
 
+  // 임시 게시글 데이터
   const dummyPosts = [
-    { id: 1, category: 'Tunning Review', title: '[Tunning Review] 드디어 드림 휠 올렸습니다!', nickname: 'rudtnsiasia', view_count: 206, likes: 63 },
-    { id: 2, category: 'Community posts', title: '아반떼 N에 어울리는 경량 휠 추천 해줘요!!', nickname: 'writer1', view_count: 150, likes: 42 },
-    { id: 3, category: 'Q&A', title: '옵셋 계산기 돌려봤는데, 이 수치면 돌출 검사 통과할까요?', nickname: 'writer3', view_count: 88, likes: 12 },
+    { id: 1, category: 'Tunning Review', title: '[Tunning Review] 드디어 드림 휠 올렸습니다!', nickname: 'rudtnsiasia', view_count: 206, likes: 63, content: '드디어 고민 끝에 드림 휠로 교체했습니다. 자세도 너무 예쁘고 주행 감도 만족스럽네요!' },
+    { id: 2, category: 'Community posts', title: '아반떼 N에 어울리는 경량 휠 추천 해줘요!!', nickname: 'writer1', view_count: 150, likes: 42, content: '서킷 주행도 가끔 하는데, 아반떼 N에 찰떡인 경량 휠 추천 부탁드립니다.' },
+    { id: 3, category: 'Q&A', title: '옵셋 계산기 돌려봤는데, 이 수치면 돌출 검사 통과할까요?', nickname: 'writer3', view_count: 88, likes: 12, content: '순정 19인치에서 8.5J +45로 가려고 하는데 검사 때 무사히 통과할지 걱정입니다.' },
+  ];
+
+  const hotPosts = [
+    { id: 101, title: '국산차 전용 휠 옵셋 완벽 가이드', view_count: 512, likes: 120, nickname: '관리자', content: '국산차 오너분들을 위한 휠 옵셋 가이드 총정리 내용입니다.' },
+    { id: 102, title: '순정 휠인 줄 알았는데...', view_count: 430, likes: 98, nickname: '휠고수', content: '겉보기엔 순정 같은데 알고 보니 엄청난 하이퍼포먼스 휠이었던 건에 대하여.' },
+    { id: 103, title: '300만 원 태운 결과물 공유', view_count: 380, likes: 85, nickname: '튜닝광', content: '이번에 큰맘 먹고 300만 원 투자해서 하체 튜닝까지 싹 끝냈습니다.' },
   ];
 
   const filteredPosts = currentTab === 'All' 
     ? dummyPosts 
     : dummyPosts.filter(post => post.category === currentTab);
 
-  // 이미지 선택 시 미리보기 처리
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     const newImageUrls = files.map(file => URL.createObjectURL(file));
     setImages(prev => [...prev, ...newImageUrls]);
   };
 
-  // 등록하기 버튼 클릭 시
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
@@ -37,18 +42,20 @@ function PostList() {
       return;
     }
     alert('게시글이 성공적으로 등록되었습니다!');
-    setIsModalOpen(false); // 팝업 닫기
+    setIsModalOpen(false);
     setTitle('');
     setContent('');
     setImages([]);
   };
 
   return (
-    <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, padding: 0, position: 'relative' }}>
+    <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, paddingBottom: '40px' }}>
       
-      
+      {/* 💡 헤더는 원래 사용하시던 컴포넌트나 레이아웃이 있다면 그걸 그대로 쓰시면 됩니다! 
+        (여기서는 예시로 상단 여백만 남겨둡니다) 
+      */}
 
-      {/* 2. 메인 컨텐츠 영역 */}
+      {/* 메인 컨텐츠 영역 */}
       <div style={{ maxWidth: '1100px', margin: '40px auto', backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
         
         {/* 상단 카테고리 탭 & 검색바 */}
@@ -67,7 +74,6 @@ function PostList() {
                   cursor: 'pointer',
                   fontWeight: 'bold',
                   fontSize: '14px',
-                  transition: '0.2s'
                 }}
               >
                 {tab}
@@ -88,10 +94,17 @@ function PostList() {
         {/* 본문 영역 */}
         <div style={{ display: 'flex', gap: '30px' }}>
           
+          {/* 좌측 게시글 목록 */}
           <div style={{ flex: 2.5 }}>
             {filteredPosts.length > 0 ? (
               filteredPosts.map((post) => (
-                <div key={post.id} style={{ border: '1px solid #e0e0e0', borderRadius: '8px', padding: '20px', marginBottom: '15px', backgroundColor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}>
+                <div 
+                  key={post.id} 
+                  onClick={() => navigate(`/posts/${post.id}`)} // 클릭 시 상세 페이지로 이동
+                  style={{ border: '1px solid #e0e0e0', borderRadius: '8px', padding: '20px', marginBottom: '15px', backgroundColor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', transition: '0.2s' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fafafa'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+                >
                   <div>
                     <span style={{ fontSize: '12px', color: '#e74c3c', fontWeight: 'bold' }}>[{post.category}]</span>
                     <h3 style={{ margin: '8px 0', fontSize: '16px', color: '#222' }}>{post.title}</h3>
@@ -107,11 +120,11 @@ function PostList() {
               <p style={{ textAlign: 'center', color: '#888', padding: '40px 0' }}>해당 카테고리에 작성된 글이 없습니다.</p>
             )}
 
-            {/* 글쓰기 버튼 클릭 시 모달 열기 */}
+            {/* 글쓰기 버튼 */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
               <button 
                 onClick={() => setIsModalOpen(true)}
-                style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '5px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer', boxShadow: '0 2px 5px rgba(231,76,60,0.3)' }}
+                style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '5px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
               >
                 글쓰기 +
               </button>
@@ -123,24 +136,11 @@ function PostList() {
             <h4 style={{ margin: '0 0 15px 0', color: '#333', borderBottom: '2px solid #e74c3c', paddingBottom: '8px', fontSize: '15px' }}>🔥 HOT 게시물</h4>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {[
-                { id: 101, title: '국산차 전용 휠 옵셋 완벽 가이드', view_count: 512, likes: 120 },
-                { id: 102, title: '순정 휠인 줄 알았는데...', view_count: 430, likes: 98 },
-                { id: 103, title: '300만 원 태운 결과물 공유', view_count: 380, likes: 85 },
-                { id: 104, title: '국내 1호 매물? 직구로 겨우...', view_count: 290, likes: 64 },
-                { id: 105, title: '인치다운 vs 인치업', view_count: 215, likes: 45 },
-              ].map((hot, index) => (
+              {hotPosts.map((hot, index) => (
                 <div 
                   key={hot.id} 
-                  onClick={() => alert(`HOT 게시글 "${hot.title}" 상세 내용 보기!`)}
-                  style={{ 
-                    padding: '10px', 
-                    borderRadius: '5px', 
-                    cursor: 'pointer', 
-                    backgroundColor: '#fff', 
-                    border: '1px solid #eee',
-                    transition: '0.2s'
-                  }}
+                  onClick={() => navigate(`/posts/${hot.id}`)} // HOT 게시글도 클릭 시 상세 페이지로 이동
+                  style={{ padding: '10px', borderRadius: '5px', cursor: 'pointer', backgroundColor: '#fff', border: '1px solid #eee' }}
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
                 >
@@ -155,29 +155,15 @@ function PostList() {
 
       </div>
 
-      {/* 3. 새 글 쓰기 모달 팝업 */}
+      {/* 새 글 쓰기 모달 팝업 (글쓰기는 기존 요구사항대로 팝업 유지) */}
       {isModalOpen && (
         <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
         }}>
           <div style={{
-            backgroundColor: '#fff',
-            width: '600px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            padding: '30px',
-            borderRadius: '12px',
-            boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
-            position: 'relative'
+            backgroundColor: '#fff', width: '600px', maxHeight: '90vh', overflowY: 'auto',
+            padding: '30px', borderRadius: '12px', boxShadow: '0 5px 15px rgba(0,0,0,0.3)', position: 'relative'
           }}>
             <h2 style={{ margin: '0 0 20px 0', borderBottom: '2px solid #333', paddingBottom: '10px', fontSize: '20px' }}>
               새 글 쓰기
@@ -224,13 +210,7 @@ function PostList() {
                 <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>사진 첨부 (최대 5장)</label>
                 <label style={{ display: 'inline-block', backgroundColor: '#eaeaea', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', color: '#555', marginBottom: '10px' }}>
                   📁 이미지 업로드
-                  <input 
-                    type="file" 
-                    multiple 
-                    accept="image/*" 
-                    onChange={handleImageChange}
-                    style={{ display: 'none' }} 
-                  />
+                  <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
                 </label>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   {images.map((imgSrc, index) => (
@@ -257,7 +237,6 @@ function PostList() {
                 </button>
               </div>
             </form>
-
           </div>
         </div>
       )}
@@ -265,5 +244,3 @@ function PostList() {
     </div>
   );
 }
-
-export default PostList;
