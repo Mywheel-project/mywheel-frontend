@@ -1,0 +1,15 @@
+/* src/index.css */
+
+/* 브라우저 기본 여백 지우기 & 전체 화면 너비 확보 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
