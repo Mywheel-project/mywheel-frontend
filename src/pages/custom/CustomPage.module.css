@@ -1,0 +1,45 @@
+.customContainer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+/* 탭 바 */
+.tabContainer {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+/* 개별 탭 기본 스타일 */
+.tabItem {
+  text-decoration: none;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #777;
+  padding-bottom: 0.5rem;
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+/* 활성화된 탭 (선택된 탭) 글자 색상 */
+.activeTab {
+  color: #000;
+}
+
+/* 💡 이미지(image_a14019.png)의 빨간/회색 밑줄 효과 */
+.tabItem::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background-color: #ccc; /* 기본 회색 바 */
+  border-radius: 10px;
+}
+
+.activeTab::after {
+  background-color: #e60000; /* 선택된 탭은 빨간색 바 */
+}

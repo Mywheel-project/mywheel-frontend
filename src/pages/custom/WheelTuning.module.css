@@ -1,0 +1,192 @@
+/* 전체 컨테이너 및 중앙 정렬 */
+.tuningContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 상단 문구 */
+.headerText {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.headerText h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #000;
+  margin-bottom: 1rem;
+}
+
+.headerText p {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #626161;
+}
+
+/* 메인 3단 레이아웃 */
+.mainContent {
+  display: grid;
+  grid-template-columns: 1fr 200px 1fr; 
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 숨김 파일 인풋 */
+.fileInput {
+  display: none;
+}
+
+/* 1. 왼쪽: 내 차 업로드 박스 */
+.uploadCard {
+  justify-self: end; /* 왼쪽 영역 내에서 아이콘 쪽(오른쪽)으로 붙임 */
+  width: 400px;
+  height: 270px;
+  background-color: #d9d9d9;
+  border: 2px solid #000;
+  border-radius: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background-color 0.2s ease;
+}
+
+.uploadCard:hover {
+  background-color: #cfcfcf;
+}
+
+.uploadPlaceholder {
+  text-align: center;
+  color: #666;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.centerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0; 
+}
+
+.toolsImg {
+  width: 90px;           
+  height: auto;          
+  object-fit: contain;
+  display: block;
+}
+
+/* 3. 오른쪽: 휠 관련 요소 그룹 */
+.wheelSelectionGroup {
+  justify-self: start; 
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 400px;
+}
+
+/* 휠 8개 그리드 (4x2) */
+.wheelGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.wheelItem {
+  position: relative;
+  width: 65px;
+  height: 65px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wheelCircle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #333;
+  border: 3px solid #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.wheelInnerPattern {
+  width: 40%;
+  height: 40%;
+  border-radius: 50%;
+  background-color: #ccc;
+}
+
+/* 선택된 휠 강조 */
+.selectedWheel .wheelCircle {
+  border-color: #c82319;
+  box-shadow: 0 0 8px rgba(200, 35, 25, 0.6);
+}
+
+/* 즐겨찾기 별 표시 */
+.starBadge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  color: #f39c12;
+  font-size: 0.9rem;
+}
+
+/* 휠 사진 직접 추가하기 박스 */
+.addWheelCard {
+  width: 100%;
+  height: 90px;
+  background-color: #d9d9d9;
+  border: 2px solid #000;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #666;
+  transition: background-color 0.2s ease;
+}
+
+.addWheelCard:hover {
+  background-color: #cfcfcf;
+}
+
+/* 하단 결과보기 버튼 */
+.actionGroup {
+  margin-top: 3.5rem;
+}
+
+.submitBtn {
+  background-color: #D40000;
+  color: #ffffff;
+  border: none;
+  padding: 0.9rem 4rem;
+  border-radius: 50px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.submitBtn:hover {
+  background-color: #a01a12;
+}
