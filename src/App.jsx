@@ -1,7 +1,10 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
+// Header가 상단에 항상 상주해서 
+// LoginModal과 SignupModal을 렌더링하므로
+// 사용자가 상단 메뉴의 "로그인/회원가입" 버튼을 누르면 팝업으로 뜸
+// 따라서 App.jsx의 const LoginPage = ...와 <Route ... path="/login"/> 구문은 불필요
 
 
 // Custom 메인 탭 및 하위 컴포넌트 임포트
@@ -10,15 +13,15 @@ import WheelTuning from './pages/custom/WheelTuning';
 import MyCarSpecs from './pages/custom/MyCarSpecs';
 import WheelSpecsSearch from './pages/custom/WheelSpecsSearch';
 
-// 임시 페이지 컴포넌트 (추후 실제 파일 작성 시 임포트 경로 변경)
-const MapPage = () => <div style={{ padding: '3rem', textAlign: 'center' }}>MAP 페이지 준비 중...</div>;
-const CommunityPage = () => <div style={{ padding: '3rem', textAlign: 'center' }}>COMMUNITY 페이지 준비 중...</div>;
-const MyPage = () => <div style={{ padding: '3rem', textAlign: 'center' }}>MY PAGE 준비 중...</div>;
-const LoginPage = () => <div style={{ padding: '3rem', textAlign: 'center' }}>로그인/회원가입 페이지 준비 중...</div>;
+// 주요 메뉴 및 커뮤니티 컴포넌트 임포트
 import MyPage from './pages/MyPage';
 import PostList from './PostList';
 import PostCreate from './PostCreate';
 import PostDetail from './PostDetail';
+
+
+// 임시 페이지 컴포넌트 (추후 실제 파일 작성 시 임포트 경로 변경)
+const MapPage = () => <div style={{ padding: '3rem', textAlign: 'center' }}>MAP 페이지 준비 중...</div>;
 
 
 function App() {
@@ -40,13 +43,9 @@ function App() {
 
         {/* 기타 주요 메뉴 라우팅 */}
         <Route path="/map" element={<MapPage />} />
-        <Route path="/login" element={<LoginPage />} />
         <Route path="/mypage" element={<MyPage />} />
-        {/* 추후에 완성될 다른 페이지들 */}
-        {/* <Route path="/custom" element={<CustomPage />} /> */}
-        {/* <Route path="/map" element={<MapPage />} /> */}
-        {/* <Route path="/community" element={<CommunityPage />} /> */}
-        {/* 커뮤니티 및 글작성 페이지 연결 */}
+
+        {/* 커뮤니티 라우팅 */}
         <Route path="/community" element={<PostList />} />
         <Route path="/community/create" element={<PostCreate />} />
         <Route path="/posts/:id" element={<PostDetail />} />
