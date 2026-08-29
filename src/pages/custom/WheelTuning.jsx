@@ -14,26 +14,89 @@ const DUMMY_WHEELS = [
   { id: 8, name: 'Advan GT', isFavorite: false },
 ];
 
+const MAX_FILE_SIZE_MB = 15;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
 function WheelTuning() {
   // 1. 차량 사진 관련 State
   const [carFile, setCarFile] = useState(null);
   const [carImagePreview, setCarImagePreview] = useState(null);
+  const [isDraggingCar, setIsDraggingCar] = useState(false);
 
   // 2. 휠 선택 관련 State
   const [selectedWheelId, setSelectedWheelId] = useState(null);
   const [wheelFile, setWheelFile] = useState(null);
   const [wheelImagePreview, setWheelImagePreview] = useState(null);
+  const [isDraggingWheel, setIsDraggingWheel] = useState(false);
 
   // 3. API 요청 및 결과 State
   const [isLoading, setIsLoading] = useState(false);
   const [resultImageUrl, setResultImageUrl] = useState(null);
 
-  // 내 차 사진 업로드 핸들러
+  // 파일 유효성 검사 공통 함수
+  const validateImageFile = (file) => {
+    if (!file) return false;
+
+    if (!file.type.startsWith('image/')) {
+      alert('이미지 파일(JPG, PNG, WEBP 등)만 업로드할 수 있습니다.');
+      return false;
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      alert(`파일 용량이 너무 큽니다. ${MAX_FILE_SIZE_MB}MB 이하의 사진을 올려주세요.`);
+      return false;
+    }
+
+    return true;
+  };
+
+  // 내 차 사진 등록 처리 (파일 검증 및 메모리 관리)
+  const applyCarFile = (file) => {
+    if (!validateImageFile(file)) return;
+
+    if (carImagePreview) {
+      URL.revokeObjectURL(carImagePreview);
+    }
+
+    setCarFile(file);
+    setCarImagePreview(URL.createObjectURL(file));
+  };
+
   const handleCarImageUpload = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
-      setCarFile(file);
-      setCarImagePreview(URL.createObjectURL(file));
+      applyCarFile(file);
+    }
+  };
+
+  // 내 차 사진 삭제(초기화) 핸들러
+  const handleRemoveCarImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (carImagePreview) {
+      URL.revokeObjectURL(carImagePreview);
+    }
+    setCarFile(null);
+    setCarImagePreview(null);
+  };
+
+  // 차량 사진 드래그 앤 드롭 핸들러
+  const handleCarDragOver = (e) => {
+    e.preventDefault();
+    setIsDraggingCar(true);
+  };
+
+  const handleCarDragLeave = (e) => {
+    e.preventDefault();
+    setIsDraggingCar(false);
+  };
+
+  const handleCarDrop = (e) => {
+    e.preventDefault();
+    setIsDraggingCar(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      applyCarFile(file);
     }
   };
 
@@ -43,18 +106,62 @@ function WheelTuning() {
       setSelectedWheelId(null);
     } else {
       setSelectedWheelId(wheelId);
+      if (wheelImagePreview) {
+        URL.revokeObjectURL(wheelImagePreview);
+      }
       setWheelFile(null);
       setWheelImagePreview(null);
     }
   };
 
-  // 휠 사진 직접 업로드 핸들러
+  // 휠 사진 직접 등록 처리 (파일 검증 및 메모리 관리)
+  const applyWheelFile = (file) => {
+    if (!validateImageFile(file)) return;
+
+    if (wheelImagePreview) {
+      URL.revokeObjectURL(wheelImagePreview);
+    }
+
+    setWheelFile(file);
+    setWheelImagePreview(URL.createObjectURL(file));
+    setSelectedWheelId(null);
+  };
+
   const handleWheelImageUpload = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (file) {
-      setWheelFile(file);
-      setWheelImagePreview(URL.createObjectURL(file));
-      setSelectedWheelId(null);
+      applyWheelFile(file);
+    }
+  };
+
+  // 직접 올린 휠 사진 삭제 핸들러
+  const handleRemoveWheelImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (wheelImagePreview) {
+      URL.revokeObjectURL(wheelImagePreview);
+    }
+    setWheelFile(null);
+    setWheelImagePreview(null);
+  };
+
+  // 휠 사진 드래그 앤 드롭 핸들러
+  const handleWheelDragOver = (e) => {
+    e.preventDefault();
+    setIsDraggingWheel(true);
+  };
+
+  const handleWheelDragLeave = (e) => {
+    e.preventDefault();
+    setIsDraggingWheel(false);
+  };
+
+  const handleWheelDrop = (e) => {
+    e.preventDefault();
+    setIsDraggingWheel(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) {
+      applyWheelFile(file);
     }
   };
 
@@ -122,7 +229,6 @@ function WheelTuning() {
       const blob = await res.blob();
       const defaultFileName = `mywheel_custom_${Date.now()}.jpg`;
 
-      // 1. 최신 브라우저 (Chrome, Edge 등): '다른 이름으로 저장' 파일 탐색기 창 열기
       if ('showSaveFilePicker' in window) {
         const handle = await window.showSaveFilePicker({
           suggestedName: defaultFileName,
@@ -138,7 +244,6 @@ function WheelTuning() {
         await writable.write(blob);
         await writable.close();
       } else {
-        // 2. 미지원 브라우저: 기본 a 태그 다운로드 폴백
         const blobUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = blobUrl;
@@ -149,7 +254,6 @@ function WheelTuning() {
         window.URL.revokeObjectURL(blobUrl);
       }
     } catch (err) {
-      // 사용자가 탐색기 창에서 '취소'를 누른 경우는 에러 알림 생략
       if (err.name !== 'AbortError') {
         console.error('다운로드 오류:', err);
         alert('이미지 저장 중 오류가 발생했습니다.');
@@ -231,11 +335,19 @@ function WheelTuning() {
                 <span>차량 사진 등록</span>
               </div>
 
-              <label className={`${styles.uploadCard} ${carImagePreview ? styles.hasPreview : ''}`}>
+              <label
+                className={`${styles.uploadCard} ${carImagePreview ? styles.hasPreview : ''} ${
+                  isDraggingCar ? styles.isDragging : ''
+                }`}
+                onDragOver={handleCarDragOver}
+                onDragLeave={handleCarDragLeave}
+                onDrop={handleCarDrop}
+              >
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleCarImageUpload}
+                  onClick={(e) => { e.target.value = ''; }}
                   className={styles.fileInput}
                 />
 
@@ -246,8 +358,16 @@ function WheelTuning() {
                       alt="업로드된 차량"
                       className={styles.previewImage}
                     />
+                    {/* 삭제 버튼 */}
+                    <button
+                      type="button"
+                      className={styles.removeBtn}
+                      onClick={handleRemoveCarImage}
+                    >
+                      ✕
+                    </button>
                     <div className={styles.imageOverlay}>
-                      <span>🔄 사진 변경하기</span>
+                      <span>🔄 클릭 또는 드래그하여 사진 변경</span>
                     </div>
                   </div>
                 ) : (
@@ -258,14 +378,16 @@ function WheelTuning() {
                         <circle cx="12" cy="13" r="4" />
                       </svg>
                     </div>
-                    <p className={styles.uploadPrimaryText}>내 자동차 사진 업로드</p>
-                    <p className={styles.uploadSubText}>측면 또는 45도 각도 사진 권장</p>
+                    <p className={styles.uploadPrimaryText}>
+                      {isDraggingCar ? '여기에 사진을 놓으세요!' : '내 자동차 사진 업로드'}
+                    </p>
+                    <p className={styles.uploadSubText}>클릭하거나 사진을 드래그해 놓으세요 (최대 15MB)</p>
                   </div>
                 )}
               </label>
             </div>
 
-            {/* 2. 가운데: 공구/결합 아이콘 */}
+            {/* 2. 가운데: 공구 아이콘 */}
             <div className={styles.centerIcon}>
               <div className={styles.toolIconWrapper}>
                 <img
@@ -318,12 +440,16 @@ function WheelTuning() {
                 <label
                   className={`${styles.addWheelCard} ${
                     wheelFile ? styles.customWheelSelected : ''
-                  }`}
+                  } ${isDraggingWheel ? styles.isDragging : ''}`}
+                  onDragOver={handleWheelDragOver}
+                  onDragLeave={handleWheelDragLeave}
+                  onDrop={handleWheelDrop}
                 >
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleWheelImageUpload}
+                    onClick={(e) => { e.target.value = ''; }}
                     className={styles.fileInput}
                   />
 
@@ -332,13 +458,23 @@ function WheelTuning() {
                       <img src={wheelImagePreview} alt="선택된 휠" className={styles.customWheelThumb} />
                       <div className={styles.customWheelInfo}>
                         <span className={styles.customWheelSuccess}>✓ 직접 등록한 휠 선택됨</span>
-                        <span className={styles.customWheelChangeText}>클릭하여 다른 휠로 변경</span>
+                        <span className={styles.customWheelChangeText}>클릭 또는 드래그하여 다른 휠로 변경</span>
                       </div>
+                      <button
+                        type="button"
+                        className={styles.customWheelRemoveBtn}
+                        onClick={handleRemoveWheelImage}
+                        title="휠 사진 삭제"
+                      >
+                        ✕
+                      </button>
                     </div>
                   ) : (
                     <div className={styles.addWheelPlaceholder}>
                       <span className={styles.addIcon}>+</span>
-                      <span>원하는 휠 사진 직접 추가하기</span>
+                      <span>
+                        {isDraggingWheel ? '여기에 휠 사진을 놓으세요!' : '원하는 휠 사진 직접 추가하기 (드래그 가능)'}
+                      </span>
                     </div>
                   )}
                 </label>

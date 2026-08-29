@@ -53,7 +53,7 @@ function MyCarSpecs() {
       {/* 상단 제목 및 안내 문구 */}
       <div className={styles.headerText}>
         <h2>차량에 맞는 최적의 스펙을 제안하는 페이지입니다</h2>
-        <p>자신의 차종을 상세하게 적어주세요 (ex. 아반떼 CN7, 제네시스 G80, W219 CLS)</p>
+        <p>차량의 정확한 차종과 연식을 입력해주세요 (ex:  yf쏘나타 2012,  G80-DH 2018,  w219 cls 2007)</p>
       </div>
 
       {/* 1. 검색창 영역 */}
@@ -61,7 +61,7 @@ function MyCarSpecs() {
         <input
           type="text"
           className={styles.searchInput}
-          placeholder="차종을 입력하세요"
+          placeholder="차종과 연식을 입력하세요"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           disabled={loading}
@@ -74,7 +74,7 @@ function MyCarSpecs() {
       {/* 로딩 안내 */}
       {loading && (
         <div className={styles.loadingBox}>
-          <p>AI 피팅 엔지니어가 <strong>{currentQuery}</strong>의 휠/타이어 제원을 분석하고 있습니다...</p>
+          <p><strong>{currentQuery}</strong>의 휠/타이어 제원을 분석하고 있습니다...</p>
         </div>
       )}
 

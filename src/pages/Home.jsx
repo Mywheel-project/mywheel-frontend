@@ -64,7 +64,7 @@ function Home() {
           <img src={mapPreviewImg} alt="휠 타이어 추천 프리뷰" className={styles.previewImg} />
         </div>
 
-        <Link to="/map" className={styles.actionBtn}>
+        <Link to="custom/my-specs" className={styles.actionBtn}>
           휠/타이어 제원 바로가기
         </Link>
       </section>

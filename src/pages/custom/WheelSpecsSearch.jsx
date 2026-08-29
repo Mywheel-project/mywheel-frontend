@@ -66,7 +66,7 @@ function WheelSearch() {
           <input
             type="text"
             className={styles.searchInput}
-            placeholder="휠 제품명을 입력해주세요 (ex. BBS LM, TE37)"
+            placeholder="휠 제품명을 입력해주세요 (ex BBS LM-R, TE37)"
             value={wheelName}
             onChange={(e) => setWheelName(e.target.value)}
             disabled={loading}
@@ -77,7 +77,7 @@ function WheelSearch() {
           <input
             type="text"
             className={styles.searchInput}
-            placeholder="차종을 입력해주세요 (선택, ex. 아반떼 CN7)"
+            placeholder="(선택) 차종과 연식을 입력해주세요 (ex yf쏘나타 2012)"
             value={carModel}
             onChange={(e) => setCarModel(e.target.value)}
             disabled={loading}
@@ -93,7 +93,7 @@ function WheelSearch() {
       {loading && (
         <div className={styles.loadingBox}>
           <p>
-            AI 엔지니어가 <strong>{lastSearched.wheel}</strong>
+            <strong>{lastSearched.wheel}</strong>
             {lastSearched.car && <> (차량: <strong>{lastSearched.car}</strong>)</>}의 제원 및 호환성을 분석 중입니다...
           </p>
         </div>
