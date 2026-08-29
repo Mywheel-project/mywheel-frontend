@@ -3,7 +3,7 @@ import { NavLink, Link } from 'react-router-dom';
 import LoginModal from './LoginModal';
 import SignupModal from './SignupModal';
 import styles from './Header.module.css';
-import logoImg from '../assets/Mywheellogo.png';
+import logoImg from '../assets/Mywheellogo3.png';
 
 function Header() {
   const [authModal, setAuthModal] = useState(null);
@@ -18,7 +18,6 @@ function Header() {
         {/* 로고 영역 */}
         <Link to="/" className={styles.logoGroup}>
           <img src={logoImg} alt="MyWheel Logo" className={styles.logoImage} />
-          <h1 className={styles.logoTitle}>MY wheel</h1>
         </Link>
 
         {/* 메뉴 영역: Link 대신 NavLink 사용 */}
