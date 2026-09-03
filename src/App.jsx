@@ -21,8 +21,8 @@ import PostCreate from './PostCreate';
 import PostDetail from './PostDetail';
 
 
-// 임시 페이지 컴포넌트 (추후 실제 파일 작성 시 임포트 경로 변경)
-const MapPage = () => <div style={{ padding: '3rem', textAlign: 'center' }}>MAP 페이지 준비 중...</div>;
+// // 임시 페이지 컴포넌트 (추후 실제 파일 작성 시 임포트 경로 변경)
+// const MapPage = () => <div style={{ padding: '3rem', textAlign: 'center' }}>MAP 페이지 준비 중...</div>;
 
 
 function App() {
