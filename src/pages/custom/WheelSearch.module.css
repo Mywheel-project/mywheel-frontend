@@ -43,7 +43,7 @@
   border-radius: 50px;
   display: flex;
   align-items: center;
-  padding: 0 1.5rem;
+  padding: 0 1.2rem;
   box-sizing: border-box;
 }
 
@@ -52,7 +52,7 @@
   border: none;
   background: transparent;
   outline: none;
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 700;
   color: #000;
   text-align: center;
@@ -76,11 +76,43 @@
   transition: background-color 0.2s ease;
 }
 
-.searchBtn:hover {
-  background-color: #a01a12;
+.searchBtn:disabled {
+  background-color: #888;
+  cursor: not-allowed;
 }
 
-/* 2. 하단 결과 카드 (JSON 데이터 바인딩 파트) */
+/* 로딩 & 에러 영역 */
+.loadingBox {
+  margin-bottom: 2rem;
+  padding: 1.5rem 2.5rem;
+  background-color: #f0f0f0;
+  border: 2px dashed #000;
+  border-radius: 20px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+
+.errorBox {
+  margin-bottom: 2rem;
+  padding: 1.2rem 2rem;
+  background-color: #ffe6e6;
+  border: 2px solid #D40000;
+  border-radius: 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #D40000;
+  text-align: center;
+}
+
+/* 2. 하단 결과 카드 */
 .resultCard {
   width: 100%;
   max-width: 1100px;
@@ -94,44 +126,70 @@
   gap: 1.5rem;
 }
 
-.summaryText {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #000;
-  line-height: 1.6;
-}
-
-.sectionBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.sectionTitle {
-  font-size: 1.05rem;
+.resultTitle {
+  font-size: 1.25rem;
   font-weight: 800;
   color: #000;
+  margin-bottom: 0.5rem;
 }
 
-.specList {
-  list-style-type: disc;
+/* 마크다운 콘텐츠 스타일링 */
+.markdownContent {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #222;
+}
+
+.markdownContent p {
+  margin: 0.8rem 0;
+  font-weight: 600;
+}
+
+.markdownContent strong {
+  font-weight: 800;
+  color: #D40000;
+}
+
+.markdownContent ul,
+.markdownContent ol {
   padding-left: 1.8rem;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  margin: 0.8rem 0;
 }
 
-.specList li {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #111;
-  line-height: 1.5;
+.markdownContent li {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
 }
 
-.recommendText {
+/* 마크다운 테이블 스타일 */
+.markdownContent table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.2rem 0;
+  background-color: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.markdownContent th,
+.markdownContent td {
+  padding: 0.9rem 1.2rem;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
   font-size: 0.95rem;
+}
+
+.markdownContent th {
+  background-color: #222222;
+  color: #ffffff;
   font-weight: 700;
-  color: #111;
-  line-height: 1.6;
+}
+
+.markdownContent tr:last-child td {
+  border-bottom: none;
+}
+
+.markdownContent tr:nth-child(even) td {
+  background-color: #f9f9f9;
 }
