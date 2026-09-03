@@ -3,7 +3,7 @@ import { NavLink, Link } from 'react-router-dom';
 import LoginModal from './LoginModal';
 import SignupModal from './SignupModal';
 import styles from './Header.module.css';
-import logoImg from '../assets/Mywheellogo.png';
+import logoImg from '../assets/Mywheellogo3.png';
 
 // 로그인한 유저 정보를 저장하는 localStorage 키.
 // 새로고침/재방문해도 로그인 상태가 유지되도록 여기에 저장한다.
@@ -47,7 +47,6 @@ function Header() {
         {/* 로고 영역 */}
         <Link to="/" className={styles.logoGroup}>
           <img src={logoImg} alt="MyWheel Logo" className={styles.logoImage} />
-          <h1 className={styles.logoTitle}>MY wheel</h1>
         </Link>
 
         {/* 메뉴 영역: Link 대신 NavLink 사용 */}
