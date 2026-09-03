@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import EditProfileModal from '../components/EditProfileModal';
 import WheelDetailModal from '../components/WheelDetailModal';
@@ -55,16 +55,57 @@ const FAVORITE_WHEELS = [
 const VISIBLE_WHEELS = 3;
 const GALLERY_IMAGES_PER_PAGE = 6;
 
+// Header 에서 로그인 성공 시 저장하는 것과 동일한 localStorage 키.
+// 여기서는 로그인 여부 판단과 "내 id" 를 얻는 용도로만 사용하고,
+// 실제 닉네임/이메일/프로필 사진은 항상 /users/me 를 호출해 DB 최신값을 받아온다.
+const USER_STORAGE_KEY = 'mywheel_user';
+const API_BASE_URL = 'http://localhost:8000';
+
+function getStoredUserId() {
+  try {
+    const saved = localStorage.getItem(USER_STORAGE_KEY);
+    return saved ? JSON.parse(saved)?.id ?? null : null;
+  } catch {
+    return null;
+  }
+}
+
+const DEFAULT_PROFILE = {
+  name: '닉네임(이름)',
+  email: 'example@gmail.com',
+  avatarUrl: null,
+};
+
 function MyPage() {
   const [galleryPage, setGalleryPage] = useState(0);
   const [wheelIndex, setWheelIndex] = useState(0);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedWheel, setSelectedWheel] = useState(null);
-  const [profile, setProfile] = useState({
-    name: '닉네임(이름)',
-    email: 'example@gmail.com',
-    avatarUrl: null,
-  });
+  // 로그인하지 않았거나 아직 응답이 오기 전에는 기본값을 보여준다.
+  const [profile, setProfile] = useState(DEFAULT_PROFILE);
+  // 회원 정보 수정(PUT /users/me) 요청 시 "나"를 식별하는 데 필요하다.
+  const userId = getStoredUserId();
+
+  // 마운트 시 /users/me 를 호출해 DB에 저장된 내 정보(닉네임/이메일/프로필 사진)를 받아온다.
+  useEffect(() => {
+    if (!userId) return;
+
+    fetch(`${API_BASE_URL}/users/me`, {
+      headers: { 'X-User-Id': String(userId) },
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => {
+        if (!data) return;
+        setProfile({
+          name: data.nickname,
+          email: data.email,
+          avatarUrl: data.profile_image,
+        });
+      })
+      .catch(() => {
+        // 네트워크 오류 등의 경우 기본값을 그대로 유지한다.
+      });
+  }, [userId]);
 
   const maxIndex = Math.max(0, FAVORITE_WHEELS.length - VISIBLE_WHEELS);
 
@@ -84,12 +125,16 @@ function MyPage() {
     galleryPage * GALLERY_IMAGES_PER_PAGE + GALLERY_IMAGES_PER_PAGE,
   );
 
-  const handleConfirmProfile = ({ name, email, previewUrl }) => {
+  // EditProfileModal 이 PUT /users/me 로 DB 수정까지 마친 뒤, 최신 유저 정보를 넘겨준다.
+  const handleConfirmProfile = (updatedUser) => {
     setProfile((prev) => ({
-      name,
-      email,
-      avatarUrl: previewUrl ?? prev.avatarUrl,
+      name: updatedUser.nickname,
+      email: updatedUser.email,
+      avatarUrl: prev.avatarUrl, // 프로필 사진 수정은 아직 지원하지 않는다.
     }));
+
+    // Header 가 localStorage 에서 닉네임을 읽으므로, 다음 새로고침에도 최신 값이 보이도록 갱신한다.
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
   };
 
   return (
@@ -232,6 +277,7 @@ function MyPage() {
       <EditProfileModal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
+        userId={userId}
         initialName={profile.name}
         initialEmail={profile.email}
         onConfirm={handleConfirmProfile}

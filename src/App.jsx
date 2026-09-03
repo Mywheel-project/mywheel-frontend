@@ -15,6 +15,7 @@ import WheelSpecsSearch from './pages/custom/WheelSpecsSearch';
 
 // 주요 메뉴 및 커뮤니티 컴포넌트 임포트
 import MyPage from './pages/MyPage';
+import MapPage from './pages/MapPage';
 import PostList from './PostList';
 import PostCreate from './PostCreate';
 import PostDetail from './PostDetail';

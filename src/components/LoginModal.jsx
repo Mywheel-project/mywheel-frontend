@@ -1,16 +1,23 @@
 import { useEffect, useId, useState } from 'react';
 import styles from './LoginModal.module.css';
 
-function LoginModal({ isOpen, onClose, onOpenSignup }) {
+// FastAPI 백엔드 주소. 배포 시에는 .env(VITE_API_BASE_URL)로 분리하는 게 좋다.
+const API_BASE_URL = 'http://localhost:8000';
+
+function LoginModal({ isOpen, onClose, onOpenSignup, onLoginSuccess }) {
   const titleId = useId();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // 제출 중 중복 클릭 방지 + 에러 메시지 표시용 상태
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
 
     setEmail('');
     setPassword('');
+    setErrorMessage('');
 
     const onKeyDown = (event) => {
       if (event.key === 'Escape') onClose();
@@ -32,9 +39,38 @@ function LoginModal({ isOpen, onClose, onOpenSignup }) {
     if (event.target === event.currentTarget) onClose();
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    onClose();
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const body = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        // FastAPI 에러 응답은 detail 필드에 메시지(문자열) 또는
+        // 검증 오류 배열이 담기므로 두 형태를 모두 처리한다.
+        const detail = body?.detail;
+        const message = Array.isArray(detail)
+          ? detail.map((item) => item.msg).join(', ')
+          : detail || '로그인에 실패했습니다.';
+        throw new Error(message);
+      }
+
+      // body 는 { id, email, nickname } 형태 - 상위(Header)로 그대로 전달해
+      // localStorage 저장 및 헤더 UI 갱신을 맡긴다.
+      onLoginSuccess(body);
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -117,8 +153,10 @@ function LoginModal({ isOpen, onClose, onOpenSignup }) {
             />
           </label>
 
-          <button type="submit" className={styles.loginBtn}>
-            로그인
+          {errorMessage && <p className={styles.errorText}>{errorMessage}</p>}
+
+          <button type="submit" className={styles.loginBtn} disabled={isSubmitting}>
+            {isSubmitting ? '로그인 중...' : '로그인'}
           </button>
         </form>
 

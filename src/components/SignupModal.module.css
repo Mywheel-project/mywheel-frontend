@@ -110,6 +110,13 @@
   color: #777;
 }
 
+.errorText {
+  margin: 0;
+  padding-left: 0.5rem;
+  font-size: 0.85rem;
+  color: #e03131;
+}
+
 .termsBox {
   margin-top: 0.25rem;
   background-color: #9e9e9e;
