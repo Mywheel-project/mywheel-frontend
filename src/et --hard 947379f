@@ -1,0 +1,8 @@
+[33m9f01437[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: reset: moving to origin/main
+[33mb1a607e[m HEAD@{1}: rebase (abort): returning to refs/heads/main
+[33m947379f[m HEAD@{2}: commit: 커뮤니티 및 HOT 게시물 UI 최종 반영
+[33m9f01437[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{3}: reset: moving to origin/main
+[33m1c9798a[m HEAD@{4}: commit: 커뮤니티 및 HOT 게시물 UI 최신 작업본
+[33m9f01437[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{5}: pull origin main --rebase (start): checkout 9f01437a893e23381adcea85117ac9905125a3a3
+[33mb1a607e[m HEAD@{6}: commit: 커뮤니티 화면 및 HOT 게시물 UI 구현
+[33m7ac9c97[m HEAD@{7}: clone: from https://github.com/Mywheel-project/mywheel-frontend.git

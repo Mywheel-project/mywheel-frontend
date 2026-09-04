@@ -1,0 +1,218 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal {
+  position: relative;
+  width: min(420px, 100%);
+  background-color: #d9d9d9;
+  border-radius: 28px;
+  padding: 2.25rem 2rem 2rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+}
+
+.closeBtn {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.95rem;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: transparent;
+  color: #111;
+  font-size: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.closeBtn:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.title {
+  margin: 0 0 1.5rem;
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #111;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background-color: #ffffff;
+  border-radius: 999px;
+  padding: 0.85rem 1.15rem;
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 1rem;
+  color: #333;
+}
+
+.input::placeholder {
+  color: #b0b0b0;
+}
+
+.loginBtn {
+  margin-top: 0.35rem;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  background-color: #d40000;
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 800;
+  padding: 0.95rem 1rem;
+  border-radius: 999px;
+  transition: background-color 0.15s ease;
+}
+
+.loginBtn:hover {
+  background-color: #b80000;
+}
+
+.helperLinks {
+  margin-top: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.helperBtn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #555;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0;
+}
+
+.helperBtn:hover {
+  color: #111;
+  text-decoration: underline;
+}
+
+.helperDivider {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.socialSection {
+  margin-top: 1.5rem;
+}
+
+.socialDivider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.socialDivider::before,
+.socialDivider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: #9a9a9a;
+}
+
+.socialDivider span {
+  white-space: nowrap;
+}
+
+.socialButtons {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.kakaoBtn,
+.googleBtn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+
+.kakaoBtn:hover,
+.googleBtn:hover {
+  transform: scale(1.05);
+}
+
+.kakaoBtn {
+  background-color: #fee500;
+}
+
+.googleBtn {
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+}
+
+.kakaoBtn svg,
+.googleBtn svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 2rem 1.35rem 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+}
