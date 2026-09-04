@@ -1,55 +1,42 @@
 import { useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import styles from './WheelSearch.module.css';
+
+// 💡 Gemini API에서 responseSchema로 받아올 JSON 데이터와 동일한 예시 구조
+const DUMMY_WHEEL_SEARCH_DATA = {
+  summary: "결론부터 말씀드리면, 장착은 가능하지만 '허브링'과 '전용 볼트(또는 가공)'가 반드시 필요합니다. 두 차량의 휠 규격(제원)이 다르기 때문인데요,",
+  unmatchedSpecs: [
+    "PCD: 브라부스(112) vs 쏘나타(114.3) → 체결 불가",
+    "허브보어: 브라부스(66.6mm) vs 쏘나타(67.1mm) → 휠 구멍이 작아 안 들어감"
+  ],
+  solutions: [
+    "PCD 체인저 필수: 규격 변환을 위해 체인저를 써야 하나, 이로 인해 휠이 휀더 밖으로 돌출되어 검사가 어려울 수 있습니다.",
+    "허브 가공: 쏘나타 허브축에 맞추기 위해 휠 안쪽 구멍을 깎아내는 선반 가공이 반드시 필요합니다."
+  ],
+  recommendation: "장착은 가능하지만 정품 휠 가공 시 가치가 크게 하락하며, 안전과 검사 통과 측면에서 위험 부담이 큽니다. 가급적 가공 없이 바로 장착 가능한 쏘나타 전용 규격(5홀 114.3)의 다른 명품 휠을 선택하시길 권장합니다."
+};
 
 function WheelSearch() {
   const [wheelName, setWheelName] = useState('');
   const [carModel, setCarModel] = useState('');
-  const [searchResult, setSearchResult] = useState(null);
-  const [lastSearched, setLastSearched] = useState({ wheel: '', car: '' });
+  
+  // 💡 마크다운 텍스트 대신 JSON 객체를 관리하도록 변경
+  const [searchResult, setSearchResult] = useState(DUMMY_WHEEL_SEARCH_DATA);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const handleSearch = async (e) => {
+  const handleSearch = (e) => {
     e.preventDefault();
-    const trimmedWheel = wheelName.trim();
-    const trimmedCar = carModel.trim();
-
-    if (!trimmedWheel) {
+    if (!wheelName.trim()) {
       alert('휠 제품명을 입력해 주세요.');
       return;
     }
 
     setLoading(true);
-    setError(null);
-    setLastSearched({ wheel: trimmedWheel, car: trimmedCar });
-
-    try {
-      const response = await fetch('http://localhost:8000/api/v1/search/wheel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          wheel_name: trimmedWheel,
-          ...(trimmedCar ? { vehicle_model: trimmedCar } : {}),
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || '휠 제원 검색에 실패했습니다.');
-      }
-
-      const data = await response.json();
-      setSearchResult(data.gemini_response);
-    } catch (err) {
-      console.error('휠 제원 검색 API 오류:', err);
-      setError(err.message || '오류가 발생했습니다.');
-    } finally {
+    
+    // 임시 검색 테스트 (추후 Gemini API 호출 함수로 교체할 부분)
+    setTimeout(() => {
+      setSearchResult(DUMMY_WHEEL_SEARCH_DATA);
       setLoading(false);
-    }
+    }, 300);
   };
 
   return (
@@ -57,7 +44,7 @@ function WheelSearch() {
       {/* 상단 타이틀 영역 */}
       <div className={styles.headerText}>
         <h2>특정 휠의 상세 정보를 빠르게 찾아보고 적합성을 확인하는 페이지입니다</h2>
-        <p>휠 제품명을 입력하세요. 장착할 차종도 적어주시면 호환성 여부까지 한 번에 확인 가능합니다.</p>
+        <p>휠 제품명을 입력하세요 장착할 차종도 적어주시면 호환성 여부까지 한 번에 확인 가능합니다.</p>
       </div>
 
       {/* 1. 상단 2분할 검색 바 */}
@@ -66,10 +53,9 @@ function WheelSearch() {
           <input
             type="text"
             className={styles.searchInput}
-            placeholder="휠 제품명을 입력해주세요 (ex BBS LM-R, TE37)"
+            placeholder="휠 제품명을 입력해주세요"
             value={wheelName}
             onChange={(e) => setWheelName(e.target.value)}
-            disabled={loading}
           />
         </div>
 
@@ -77,46 +63,54 @@ function WheelSearch() {
           <input
             type="text"
             className={styles.searchInput}
-            placeholder="(선택) 차종과 연식을 입력해주세요 (ex yf쏘나타 2012)"
+            placeholder="차종을 입력해주세요 (필수X)"
             value={carModel}
             onChange={(e) => setCarModel(e.target.value)}
-            disabled={loading}
           />
         </div>
 
         <button type="submit" className={styles.searchBtn} disabled={loading}>
-          {loading ? '분석 중...' : '검색'}
+          {loading ? '검색 중...' : '검색'}
         </button>
       </form>
 
-      {/* 로딩 안내 */}
-      {loading && (
-        <div className={styles.loadingBox}>
-          <p>
-            <strong>{lastSearched.wheel}</strong>
-            {lastSearched.car && <> (차량: <strong>{lastSearched.car}</strong>)</>}의 제원 및 호환성을 분석 중입니다...
-          </p>
-        </div>
-      )}
-
-      {/* 에러 안내 */}
-      {error && !loading && (
-        <div className={styles.errorBox}>
-          <p>⚠️ {error}</p>
-        </div>
-      )}
-
-      {/* 2. 하단 호환성 및 제원 결과 박스 */}
-      {searchResult && !loading && (
+      {/* 2. 하단 JSON 호환성 및 제원 결과 박스 */}
+      {searchResult && (
         <div className={styles.resultCard}>
-          <h3 className={styles.resultTitle}>
-            [{lastSearched.wheel} {lastSearched.car ? `× ${lastSearched.car} 호환성 진단` : '제원 정보'}]
-          </h3>
-          <div className={styles.markdownContent}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {searchResult}
-            </ReactMarkdown>
-          </div>
+          {/* 요약 문구 */}
+          <p className={styles.summaryText}>{searchResult.summary}</p>
+
+          {/* 1. 제원 불일치 항목 */}
+          {searchResult.unmatchedSpecs?.length > 0 && (
+            <div className={styles.sectionBlock}>
+              <h4 className={styles.sectionTitle}>1. 제원 불일치 (장착 불가 원인)</h4>
+              <ul className={styles.specList}>
+                {searchResult.unmatchedSpecs.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* 2. 해결 과제 */}
+          {searchResult.solutions?.length > 0 && (
+            <div className={styles.sectionBlock}>
+              <h4 className={styles.sectionTitle}>2. 장착을 위한 해결 과제</h4>
+              <ul className={styles.specList}>
+                {searchResult.solutions.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* 3. 최종 조언 */}
+          {searchResult.recommendation && (
+            <div className={styles.sectionBlock}>
+              <h4 className={styles.sectionTitle}>3. 최종 조언</h4>
+              <p className={styles.recommendText}>{searchResult.recommendation}</p>
+            </div>
+          )}
         </div>
       )}
     </div>

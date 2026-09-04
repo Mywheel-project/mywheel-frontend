@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom';
 import styles from './Home.module.css';
 
-// 사용할 이미지 경로 
-import mainLogoImg from '../assets/Mywheellogo2.png';
-import TireStackGraphic from '../components/TireStackGraphic'; // 생성한 컴포넌트 임포트
+// 사용할 이미지 경로 (프로젝트 assets 폴더 위치에 맞게 수정해줘)
+import mainWheelImg from '../assets/homepage/wheel_main.png'; 
 import carBeforeImg from '../assets/homepage/car_before.png'; 
 import carAfterImg from '../assets/homepage/car_after.png'; 
 import mapPreviewImg from '../assets/homepage/preview_map.png'; 
@@ -16,21 +15,14 @@ function Home() {
       {/* 1. HERO SECTION (상단 히어로 배너) */}
       <section className={styles.heroSection}>
         <div className={styles.heroContent}>
-          <div className={styles.heroText}>
-            <h2>당신의 차를</h2>
-              <div className={styles.titleWithWheel}>
-                <h1>가장 멋지게 만드는 방법</h1>
-
-                <img
-                  src={mainLogoImg}
-                  alt="Wheel"
-                  className={styles.inlineLogoImg}
-                />
-
-                <TireStackGraphic className={styles.tireStackGraphic} />
-              </div>
-            <p>사용자의 실제 차량 사진을 기반으로 휠 튜닝 및 최적의 제원을 추천 받아보세요</p>
-          </div>
+        <div className={styles.heroText}>
+          <h2>당신의 차를</h2>
+          <h1>가장 멋지게 만드는 방법 <span>MY wheel</span></h1>
+          <p>사용자의 실제 차량 사진을 기반으로 휠 튜닝 및 최적의 제원을 추천 받아보세요</p>
+        </div>
+        <div className={styles.heroImageWrapper}>
+          <img src={mainWheelImg} alt="Wheel" className={styles.heroWheelImg} />
+        </div>
         </div>
       </section>
 
@@ -72,7 +64,7 @@ function Home() {
           <img src={mapPreviewImg} alt="휠 타이어 추천 프리뷰" className={styles.previewImg} />
         </div>
 
-        <Link to="custom/my-specs" className={styles.actionBtn}>
+        <Link to="/map" className={styles.actionBtn}>
           휠/타이어 제원 바로가기
         </Link>
       </section>

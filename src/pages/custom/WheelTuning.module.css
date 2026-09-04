@@ -1,19 +1,15 @@
-/* ===================================================
-   전체 컨테이너 및 타이포그래피
-=================================================== */
+/* 전체 컨테이너 및 중앙 정렬 */
 .tuningContainer {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-sizing: border-box;
 }
 
+/* 상단 문구 */
 .headerText {
   text-align: center;
-  margin-bottom: 3rem;
+  margin-bottom: 4rem;
 }
 
 .headerText h2 {
@@ -21,661 +17,176 @@
   font-weight: 700;
   color: #000;
   margin-bottom: 1rem;
-  letter-spacing: -0.02em;
 }
 
 .headerText p {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 500;
-  color: #666666;
-  line-height: 1.6;
+  color: #626161;
 }
 
-/* ===================================================
-   메인 3단 작업 영역 레이아웃
-=================================================== */
+/* 메인 3단 레이아웃 */
 .mainContent {
   display: grid;
-  grid-template-columns: 1fr 120px 1fr;
+  grid-template-columns: 1fr 200px 1fr; 
   align-items: center;
-  gap: 1.5rem;
   width: 100%;
-  margin-bottom: 3.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.columnSection {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.sectionLabel {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #222222;
-  margin-bottom: 0.9rem;
-}
-
-.stepBadge {
-  background-color: #111111;
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 0.25rem 0.6rem;
-  border-radius: 6px;
-  letter-spacing: 0.05em;
-}
-
-.selectedWheelLabel {
-  color: #D40000;
-  font-weight: 800;
-}
-
+/* 숨김 파일 인풋 */
 .fileInput {
   display: none;
 }
 
-/* ===================================================
-   1. 왼쪽: 차량 사진 업로드 카드
-=================================================== */
+/* 1. 왼쪽: 내 차 업로드 박스 */
 .uploadCard {
-  position: relative;
-  width: 100%;
-  height: 320px;          /* 기준 높이 (오른쪽 휠 선택 그리드와 균형 맞춤) */
-  max-height: 380px;      /* 최대 높이 제한선 */
-  background-color: #F7F7F8;
-  border: 2.5px dashed #D0D0D5;
+  justify-self: end; /* 왼쪽 영역 내에서 아이콘 쪽(오른쪽)으로 붙임 */
+  width: 400px;
+  height: 270px;
+  background-color: #d9d9d9;
+  border: 2px solid #000;
   border-radius: 24px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   overflow: hidden;
-  box-sizing: border-box;
-  transition: all 0.25s ease;
+  transition: background-color 0.2s ease;
 }
 
 .uploadCard:hover {
-  background-color: #EFEFEF;
-  border-color: #111111;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-}
-
-.uploadCard.isDragging {
-  background-color: #FFF5F5;
-  border-color: #D40000;
-  transform: scale(1.02);
-  box-shadow: 0 8px 24px rgba(212, 0, 0, 0.15);
-}
-
-.uploadCard.hasPreview {
-  border: 2px solid #111111;
-  background-color: #111111;
+  background-color: #cfcfcf;
 }
 
 .uploadPlaceholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   text-align: center;
-  gap: 0.6rem;
-  padding: 1.5rem;
-}
-
-.uploadIconCircle {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background-color: #EAEAEA;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #444444;
-  margin-bottom: 0.4rem;
-  transition: transform 0.2s ease;
-}
-
-.uploadCard:hover .uploadIconCircle {
-  transform: scale(1.1);
-  background-color: #111111;
-  color: #ffffff;
-}
-
-.uploadPrimaryText {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #222222;
-  margin: 0;
-}
-
-.uploadSubText {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #888888;
-  margin: 0;
-}
-
-.previewContainer {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  background-color: #111111;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #666;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.6;
 }
 
 .previewImage {
   width: 100%;
   height: 100%;
-  max-height: 380px;
+  object-fit: cover;
+}
+
+.centerIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0; 
+}
+
+.toolsImg {
+  width: 90px;           
+  height: auto;          
   object-fit: contain;
   display: block;
 }
 
-.removeBtn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: #ffffff;
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
-  font-size: 0.9rem;
-  font-weight: 800;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  transition: all 0.2s ease;
-}
-
-.removeBtn:hover {
-  background-color: #D40000;
-  border-color: #D40000;
-  transform: scale(1.1);
-}
-
-.imageOverlay {
-  position: absolute;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 0.95rem;
-  font-weight: 700;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-}
-
-.previewContainer:hover .imageOverlay {
-  opacity: 1;
-}
-
-/* ===================================================
-   2. 가운데: 공구/결합 아이콘
-=================================================== */
-.centerIcon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.toolIconWrapper {
-  width: 72px;
-  height: 72px;
-  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-  border: 2px solid #000000;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.toolsImg {
-  width: 42px;
-  height: 42px;
-  object-fit: contain;
-}
-
-.plusSign {
-  font-size: 1.5rem;
-  font-weight: 900;
-  color: #D40000;
-}
-
-/* ===================================================
-   3. 오른쪽: 휠 프리셋 그리드 & 직접 업로드
-=================================================== */
+/* 3. 오른쪽: 휠 관련 요소 그룹 */
 .wheelSelectionGroup {
+  justify-self: start; 
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
-  width: 100%;
+  gap: 2rem;
+  width: 400px;
 }
 
+/* 휠 8개 그리드 (4x2) */
 .wheelGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.9rem;
-  background-color: #F7F7F8;
-  padding: 1.2rem;
-  border-radius: 20px;
-  border: 2px solid #E5E5E8;
-  box-sizing: border-box;
+  gap: 1.5rem;
 }
 
 .wheelItem {
   position: relative;
-  background: #ffffff;
-  border: 2px solid #E0E0E0;
-  border-radius: 16px;
-  padding: 0.6rem 0.3rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
+  width: 65px;
+  height: 65px;
   cursor: pointer;
-  outline: none;
-  transition: all 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.wheelItem:hover {
-  transform: translateY(-3px);
-  border-color: #111111;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.wheelItem.selectedWheel {
-  border-color: #D40000;
-  background-color: #FFF5F5;
-  box-shadow: 0 0 0 2px #D40000;
-}
-
-.wheelDisc {
-  position: relative;
-  width: 46px;
-  height: 46px;
+.wheelCircle {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #555 0%, #222 70%, #111 100%);
-  border: 2.5px solid #888888;
+  background-color: #333;
+  border: 3px solid #666;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.wheelSpokeCross {
-  position: absolute;
-  width: 70%;
-  height: 2px;
-  background-color: #aaa;
-  box-shadow: 0 0 0 1px #333;
-}
-
-.wheelSpokeCross::after {
-  content: '';
-  position: absolute;
-  top: -15px;
-  left: 14px;
-  width: 2px;
-  height: 32px;
-  background-color: #aaa;
-  box-shadow: 0 0 0 1px #333;
-}
-
-.wheelCenterCap {
-  position: relative;
-  width: 14px;
-  height: 14px;
+.wheelInnerPattern {
+  width: 40%;
+  height: 40%;
   border-radius: 50%;
-  background: #D40000;
-  border: 1.5px solid #fff;
-  z-index: 2;
+  background-color: #ccc;
 }
 
-.wheelItemName {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #333333;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
+/* 선택된 휠 강조 */
+.selectedWheel .wheelCircle {
+  border-color: #c82319;
+  box-shadow: 0 0 8px rgba(200, 35, 25, 0.6);
 }
 
+/* 즐겨찾기 별 표시 */
 .starBadge {
   position: absolute;
-  top: 4px;
-  left: 6px;
+  bottom: -2px;
+  right: -2px;
   color: #f39c12;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
 }
 
-.checkBadge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: #D40000;
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(212, 0, 0, 0.4);
-}
-
-/* 휠 직접 업로드 카드 */
+/* 휠 사진 직접 추가하기 박스 */
 .addWheelCard {
   width: 100%;
-  height: 70px;
-  background-color: #F7F7F8;
-  border: 2px dashed #D0D0D5;
-  border-radius: 18px;
+  height: 90px;
+  background-color: #d9d9d9;
+  border: 2px solid #000;
+  border-radius: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  box-sizing: border-box;
-  padding: 0.6rem 1.2rem;
-  transition: all 0.2s ease;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #666;
+  transition: background-color 0.2s ease;
 }
 
 .addWheelCard:hover {
-  background-color: #EFEFEF;
-  border-color: #111111;
+  background-color: #cfcfcf;
 }
 
-.addWheelCard.isDragging {
-  background-color: #FFF5F5;
-  border-color: #D40000;
-  transform: scale(1.02);
-  box-shadow: 0 4px 14px rgba(212, 0, 0, 0.15);
-}
-
-.addWheelCard.customWheelSelected {
-  background-color: #FFF5F5;
-  border: 2px solid #D40000;
-}
-
-.addWheelPlaceholder {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #555555;
-}
-
-.addIcon {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: #E0E0E0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #222222;
-}
-
-.customWheelPreview {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-}
-
-.customWheelThumb {
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
-  object-fit: cover;
-  border: 2px solid #D40000;
-}
-
-.customWheelInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  flex: 1;
-}
-
-.customWheelSuccess {
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: #D40000;
-}
-
-.customWheelChangeText {
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: #888888;
-}
-
-.customWheelRemoveBtn {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background-color: #e0e0e0;
-  color: #333333;
-  border: none;
-  font-size: 0.85rem;
-  font-weight: 800;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  margin-left: auto;
-}
-
-.customWheelRemoveBtn:hover {
-  background-color: #D40000;
-  color: #ffffff;
-  transform: scale(1.1);
-}
-
-/* ===================================================
-   하단 제출 버튼
-=================================================== */
+/* 하단 결과보기 버튼 */
 .actionGroup {
-  display: flex;
-  justify-content: center;
-  width: 100%;
+  margin-top: 3.5rem;
 }
 
 .submitBtn {
-  background: #D40000;
+  background-color: #D40000;
   color: #ffffff;
   border: none;
-  padding: 1.1rem 4.5rem;
+  padding: 0.9rem 4rem;
   border-radius: 50px;
-  font-size: 1.25rem;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(212, 0, 0, 0.3);
-  transition: all 0.25s ease;
-  letter-spacing: -0.01em;
-}
-
-.submitBtn:hover:not(:disabled) {
-  background: rgb(247, 25, 25);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 26px rgba(212, 0, 0, 0.4);
-}
-
-.submitBtn:disabled {
-  background: #C4C4C4;
-  color: #777777;
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
-}
-
-.loadingTextWrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(255, 255, 255, 0.4);
-  border-top-color: #ffffff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ===================================================
-   CASE A: 결과 화면
-=================================================== */
-.resultContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 900px;
-  animation: fadeIn 0.4s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.resultHeader {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.badgeSuccess {
-  display: inline-block;
-  background-color: #E8F5E9;
-  color: #2E7D32;
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 0.35rem 0.8rem;
-  border-radius: 20px;
-  margin-bottom: 0.8rem;
-  letter-spacing: 0.05em;
-}
-
-.resultHeader h2 {
-  font-size: 1.7rem;
-  font-weight: 800;
-  color: #111111;
-  margin-bottom: 0.6rem;
-}
-
-.resultHeader p {
-  font-size: 1.05rem;
-  font-weight: 500;
-  color: #666666;
-}
-
-.resultImageWrapper {
-  width: fit-content;
-  max-width: 800px;
-  max-height: 520px;
-  background-color: transparent;
-  border-radius: 20px;
-  overflow: hidden;
-  border: 1.5px solid #E5E5E8;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.resultImage {
-  max-width: 100%;
-  max-height: 520px;
-  width: auto;
-  height: auto;
-  display: block;
-}
-
-.resultButtonGroup {
-  display: flex;
-  gap: 1.5rem;
-  margin-top: 2.5rem;
-  width: 100%;
-  justify-content: center;
-}
-
-.saveBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  background-color: #111111;
-  color: #ffffff;
-  border: 2px solid #111111;
-  padding: 1rem 3rem;
-  border-radius: 50px;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.2s ease;
 }
 
-.saveBtn:hover {
-  background-color: #333333;
-  border-color: #333333;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
-}
-
-.resetBtn {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  background: #D40000;
-  color: #ffffff;
-  border: none;
-  padding: 1rem 3rem;
-  border-radius: 50px;
-  font-size: 1.15rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(212, 0, 0, 0.3);
-}
-
-.resetBtn:hover {
-  background: rgb(247, 25, 25);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(212, 0, 0, 0.4);
-}
-
-.btnIcon {
-  width: 20px;
-  height: 20px;
+.submitBtn:hover {
+  background-color: #a01a12;
 }

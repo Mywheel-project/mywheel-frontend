@@ -1,32 +1,50 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
-function PostCreate() {
+function PostEdit() {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { token, isLoggedIn } = useAuth();
+  const { token } = useAuth();
 
   const [category, setCategory] = useState('Tunning Review');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 이미지 선택 시 미리보기
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    const newImageUrls = files.map((file) => URL.createObjectURL(file));
-    setImages((prev) => [...prev, ...newImageUrls]);
-  };
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/posts/${id}`);
+        if (response.ok) {
+          const post = await response.json();
 
-  // 백엔드 DB로 게시글 저장
+          const match = post.title.match(/^\[(.+?)\]\s*(.*)$/);
+          if (match) {
+            setCategory(match[1]);
+            setTitle(match[2]);
+          } else {
+            setTitle(post.title);
+          }
+          setContent(post.content);
+        } else {
+          alert('게시글을 불러올 수 없습니다.');
+          navigate('/community');
+        }
+      } catch (error) {
+        console.error('게시글 불러오기 오류:', error);
+        alert('서버와 연결할 수 없습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPost();
+  }, [id, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!isLoggedIn) {
-      alert('로그인이 필요합니다.');
-      return;
-    }
 
     if (!title.trim() || !content.trim()) {
       alert('제목과 내용을 모두 입력해주세요!');
@@ -36,8 +54,8 @@ function PostCreate() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/posts', {
-        method: 'POST',
+      const response = await fetch(`http://localhost:8000/api/posts/${id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
@@ -49,11 +67,11 @@ function PostCreate() {
       });
 
       if (response.ok) {
-        alert('게시글이 성공적으로 등록되었습니다!');
-        navigate('/community');
+        alert('게시글이 수정되었습니다!');
+        navigate(`/posts/${id}`);
       } else {
         const errorData = await response.json();
-        alert(`등록 실패: ${errorData.detail || '오류가 발생했습니다.'}`);
+        alert(`수정 실패: ${errorData.detail || '오류가 발생했습니다.'}`);
       }
     } catch (error) {
       console.error('백엔드 통신 오류:', error);
@@ -63,11 +81,19 @@ function PostCreate() {
     }
   };
 
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '100px 0', fontSize: '18px', color: '#666' }}>
+        게시글을 불러오는 중입니다... ⏳
+      </div>
+    );
+  }
+
   return (
     <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, padding: '20px 0' }}>
       <div style={{ maxWidth: '900px', margin: '40px auto', backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
         <h2 style={{ borderBottom: '2px solid #333', paddingBottom: '15px', marginBottom: '30px', color: '#333' }}>
-          ✏️ 커뮤니티 글쓰기
+          ✏️ 게시글 수정
         </h2>
 
         <form onSubmit={handleSubmit}>
@@ -94,7 +120,7 @@ function PostCreate() {
             />
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
+          <div style={{ marginBottom: '30px' }}>
             <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#444' }}>내용</label>
             <textarea
               placeholder="내용을 입력해주세요."
@@ -105,32 +131,10 @@ function PostCreate() {
             />
           </div>
 
-          <div style={{ marginBottom: '30px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#444' }}>사진 첨부</label>
-            <label style={{ display: 'inline-block', backgroundColor: '#eaeaea', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', color: '#555', marginBottom: '15px' }}>
-              📁 이미지 파일 선택 (여러 장 가능)
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageChange}
-                style={{ display: 'none' }}
-              />
-            </label>
-
-            <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-              {images.map((imgSrc, index) => (
-                <div key={index} style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #ddd' }}>
-                  <img src={imgSrc} alt={`preview-${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px' }}>
             <button
               type="button"
-              onClick={() => navigate('/community')}
+              onClick={() => navigate(`/posts/${id}`)}
               disabled={isSubmitting}
               style={{ backgroundColor: '#ccc', color: '#333', border: 'none', padding: '12px 25px', borderRadius: '5px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
             >
@@ -141,7 +145,7 @@ function PostCreate() {
               disabled={isSubmitting}
               style={{ backgroundColor: isSubmitting ? '#999' : '#e74c3c', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '5px', fontWeight: 'bold', fontSize: '15px', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
             >
-              {isSubmitting ? '저장 중...' : '등록하기'}
+              {isSubmitting ? '저장 중...' : '수정 완료'}
             </button>
           </div>
         </form>
@@ -150,4 +154,4 @@ function PostCreate() {
   );
 }
 
-export default PostCreate;
+export default PostEdit;

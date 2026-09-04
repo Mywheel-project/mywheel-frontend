@@ -26,7 +26,7 @@
   max-width: 1100px; /* 컨텐츠 최대 폭 제한 */
   margin: 0 auto;    /* 가운데 정렬 */
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -37,50 +37,25 @@
   margin-bottom: 0.5rem;
 }
 
-.titleWithWheel {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  margin-bottom: 1.2rem;
-}
-
-.titleWithWheel h1 {
+.heroText h1 {
   font-size: 2.5rem;
   font-weight: 800;
   color: #111;
-  margin: 0;
-  line-height: 1.2;
-  white-space: nowrap;
+  margin-bottom: 1.5rem;
 }
 
-.inlineLogoImg {
-  position: absolute;
-  left: 110%;
-  top: 10%;
-  transform: translateY(-50%);
-  margin-left: 1rem;
-  width: auto;
-  height: 150px;
-  object-fit: contain;
-  pointer-events: none;
+.heroText h1 span {
+  color: #D40000; /* MY wheel 빨간색 */
 }
-
-.tireStackGraphic {
-  position: absolute;
-  left: calc(100% + 520px);
-  top: 30%;
-  transform: translateY(-50%);
-  width: auto;
-  height: 180px;
-  object-fit: contain;
-  pointer-events: none;
-}
-
 
 .heroText p {
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   color: #555;
-  margin: 0;
+}
+
+.heroWheelImg {
+  width: 260px;
+  height: auto;
 }
 
 /* 공통 기능 섹션 스타일 */

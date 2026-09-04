@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import styles from './SignupModal.module.css';
+import { useAuth } from '../context/AuthContext';
 
 const TERMS = [
   { key: 'service', label: '서비스 이용약관 동의(필수)', required: true },
@@ -7,11 +8,9 @@ const TERMS = [
   { key: 'marketing', label: '마케팅 수신 동의(선택)', required: false },
 ];
 
-// FastAPI 백엔드 주소. 배포 시에는 .env(VITE_API_BASE_URL)로 분리하는 게 좋다.
-const API_BASE_URL = 'http://localhost:8000';
-
 function SignupModal({ isOpen, onClose }) {
   const titleId = useId();
+  const { signup } = useAuth();
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,11 +20,11 @@ function SignupModal({ isOpen, onClose }) {
     privacy: false,
     marketing: false,
   });
-  // 제출 중 중복 클릭 방지 + 에러 메시지 표시용 상태
+  const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
 
   const allChecked = TERMS.every((term) => agreements[term.key]);
+  const requiredChecked = TERMS.filter((t) => t.required).every((term) => agreements[term.key]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -35,7 +34,7 @@ function SignupModal({ isOpen, onClose }) {
     setPassword('');
     setPasswordConfirm('');
     setAgreements({ service: false, privacy: false, marketing: false });
-    setErrorMessage('');
+    setError('');
 
     const onKeyDown = (event) => {
       if (event.key === 'Escape') onClose();
@@ -72,44 +71,27 @@ function SignupModal({ isOpen, onClose }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setErrorMessage('');
+    setError('');
 
-    // 필수 약관(서비스 이용약관, 개인정보 수집)에 동의하지 않으면 요청을 보내지 않는다.
-    const requiredAgreed = TERMS.filter((term) => term.required).every(
-      (term) => agreements[term.key]
-    );
-    if (!requiredAgreed) {
-      setErrorMessage('필수 약관에 동의해주세요.');
+    if (!nickname.trim() || !email.trim() || !password.trim()) {
+      setError('모든 항목을 입력해주세요.');
       return;
     }
-
     if (password !== passwordConfirm) {
-      setErrorMessage('비밀번호가 일치하지 않습니다.');
+      setError('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+    if (!requiredChecked) {
+      setError('필수 약관에 동의해주세요.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, nickname }),
-      });
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => null);
-        // FastAPI 에러 응답은 detail 필드에 메시지(문자열) 또는
-        // 검증 오류 배열이 담기므로 두 형태를 모두 처리한다.
-        const detail = body?.detail;
-        const message = Array.isArray(detail)
-          ? detail.map((item) => item.msg).join(', ')
-          : detail || '회원가입에 실패했습니다.';
-        throw new Error(message);
-      }
-
+      await signup(nickname, email, password);
       onClose();
-    } catch (error) {
-      setErrorMessage(error.message);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -279,10 +261,12 @@ function SignupModal({ isOpen, onClose }) {
             ))}
           </div>
 
-          {errorMessage && <p className={styles.errorText}>{errorMessage}</p>}
+          {error && (
+            <p style={{ color: '#e74c3c', fontSize: '13px', margin: '-8px 0 0' }}>{error}</p>
+          )}
 
           <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
-            {isSubmitting ? '가입 처리 중...' : '회원가입하기'}
+            {isSubmitting ? '가입 중...' : '회원가입하기'}
           </button>
         </form>
 

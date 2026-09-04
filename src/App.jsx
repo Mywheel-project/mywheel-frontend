@@ -15,14 +15,14 @@ import WheelSpecsSearch from './pages/custom/WheelSpecsSearch';
 
 // 주요 메뉴 및 커뮤니티 컴포넌트 임포트
 import MyPage from './pages/MyPage';
-import MapPage from './pages/MapPage';
 import PostList from './PostList';
 import PostCreate from './PostCreate';
 import PostDetail from './PostDetail';
+import PostEdit from './PostEdit';
 
 
-// // 임시 페이지 컴포넌트 (추후 실제 파일 작성 시 임포트 경로 변경)
-// const MapPage = () => <div style={{ padding: '3rem', textAlign: 'center' }}>MAP 페이지 준비 중...</div>;
+// 임시 페이지 컴포넌트 (추후 실제 파일 작성 시 임포트 경로 변경)
+const MapPage = () => <div style={{ padding: '3rem', textAlign: 'center' }}>MAP 페이지 준비 중...</div>;
 
 
 function App() {
@@ -50,6 +50,7 @@ function App() {
         <Route path="/community" element={<PostList />} />
         <Route path="/community/create" element={<PostCreate />} />
         <Route path="/posts/:id" element={<PostDetail />} />
+        <Route path="/community/edit/:id" element={<PostEdit />} />
       </Routes>
     </Router>
   );
