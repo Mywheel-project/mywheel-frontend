@@ -1,18 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './WheelTuning.module.css';
 import toolsIconImg from '../../assets/custompage/tool.png';
 
-// 임시 휠 프리셋 데이터
-const DUMMY_WHEELS = [
-  { id: 1, name: 'BBS Super RS', isFavorite: true },
-  { id: 2, name: 'Rays TE37', isFavorite: false },
-  { id: 3, name: 'Work Meister S1', isFavorite: false },
-  { id: 4, name: 'Enkei RPF1', isFavorite: false },
-  { id: 5, name: 'OZ Ultraleggera', isFavorite: true },
-  { id: 6, name: 'Rotiform BLQ', isFavorite: false },
-  { id: 7, name: 'HRE P101', isFavorite: false },
-  { id: 8, name: 'Advan GT', isFavorite: false },
+// 휠 에셋 데이터 (사진, 브랜드, 모델명)
+const WHEEL_ASSETS = [
+  { id: 1, brand: 'BBS', modelName: 'Super RS', image: '/assets/wheels/bbs_super_rs.png', isFavorite: true },
+  { id: 2, brand: 'RAYS', modelName: 'Volk Racing TE37', image: '/assets/wheels/rays_te37.png', isFavorite: true },
+  { id: 3, brand: 'WORK', modelName: 'Meister S1 3P', image: '/assets/wheels/work_s1.png', isFavorite: false },
+  { id: 4, brand: 'ENKEI', modelName: 'Racing RPF1', image: '/assets/wheels/enkei_rpf1.png', isFavorite: false },
+  { id: 5, brand: 'OZ Racing', modelName: 'Ultraleggera HLT', image: '/assets/wheels/oz_ultraleggera.png', isFavorite: true },
+  { id: 6, brand: 'Rotiform', modelName: 'BLQ Classic', image: '/assets/wheels/rotiform_blq.png', isFavorite: false },
+  { id: 7, brand: 'HRE', modelName: 'P101 Monoblok', image: '/assets/wheels/hre_p101.png', isFavorite: false },
+  { id: 8, brand: 'ADVAN', modelName: 'Racing GT Beyond', image: '/assets/wheels/advan_gt.png', isFavorite: false },
 ];
+
+const BRANDS = ['ALL', '★ FAVORITE', 'BBS', 'RAYS', 'WORK', 'ENKEI', 'OZ Racing', 'Rotiform', 'HRE', 'ADVAN'];
 
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -23,105 +25,105 @@ function WheelTuning() {
   const [carImagePreview, setCarImagePreview] = useState(null);
   const [isDraggingCar, setIsDraggingCar] = useState(false);
 
-  // 2. 휠 선택 관련 State
+  // 2. 휠 선택 및 모달 관련 State
+  const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState('ALL');
   const [selectedWheelId, setSelectedWheelId] = useState(null);
   const [wheelFile, setWheelFile] = useState(null);
   const [wheelImagePreview, setWheelImagePreview] = useState(null);
   const [isDraggingWheel, setIsDraggingWheel] = useState(false);
 
+  // 즐겨찾기 상태 관리 (localStorage 연동)
+  const [favoriteWheelIds, setFavoriteWheelIds] = useState(() => {
+    const saved = localStorage.getItem('mywheel_favorites');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return WHEEL_ASSETS.filter((w) => w.isFavorite).map((w) => w.id);
+  });
+
   // 3. API 요청 및 결과 State
   const [isLoading, setIsLoading] = useState(false);
   const [resultImageUrl, setResultImageUrl] = useState(null);
 
-  // 파일 유효성 검사 공통 함수
+  // 모달 오픈 시 ESC 키 닫기 핸들러 등록
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setIsWheelModalOpen(false);
+    };
+    if (isWheelModalOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isWheelModalOpen]);
+
+  // 파일 유효성 검사
   const validateImageFile = (file) => {
     if (!file) return false;
-
     if (!file.type.startsWith('image/')) {
       alert('이미지 파일(JPG, PNG, WEBP 등)만 업로드할 수 있습니다.');
       return false;
     }
-
     if (file.size > MAX_FILE_SIZE_BYTES) {
       alert(`파일 용량이 너무 큽니다. ${MAX_FILE_SIZE_MB}MB 이하의 사진을 올려주세요.`);
       return false;
     }
-
     return true;
   };
 
-  // 내 차 사진 등록 처리 (파일 검증 및 메모리 관리)
+  // 내 차 사진 업로드 및 드래그 앤 드롭
   const applyCarFile = (file) => {
     if (!validateImageFile(file)) return;
-
-    if (carImagePreview) {
-      URL.revokeObjectURL(carImagePreview);
-    }
-
+    if (carImagePreview) URL.revokeObjectURL(carImagePreview);
     setCarFile(file);
     setCarImagePreview(URL.createObjectURL(file));
   };
 
   const handleCarImageUpload = (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      applyCarFile(file);
-    }
+    if (file) applyCarFile(file);
   };
 
-  // 내 차 사진 삭제(초기화) 핸들러
   const handleRemoveCarImage = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (carImagePreview) {
-      URL.revokeObjectURL(carImagePreview);
-    }
+    if (carImagePreview) URL.revokeObjectURL(carImagePreview);
     setCarFile(null);
     setCarImagePreview(null);
   };
 
-  // 차량 사진 드래그 앤 드롭 핸들러
-  const handleCarDragOver = (e) => {
-    e.preventDefault();
-    setIsDraggingCar(true);
-  };
-
-  const handleCarDragLeave = (e) => {
-    e.preventDefault();
-    setIsDraggingCar(false);
-  };
-
-  const handleCarDrop = (e) => {
-    e.preventDefault();
-    setIsDraggingCar(false);
-    const file = e.dataTransfer?.files?.[0];
-    if (file) {
-      applyCarFile(file);
-    }
-  };
-
-  // 휠 프리셋 클릭 핸들러 (재클릭 시 선택 해제)
+  // 휠 프리셋 선택 토글
   const handleSelectPresetWheel = (wheelId) => {
     if (selectedWheelId === wheelId) {
       setSelectedWheelId(null);
     } else {
       setSelectedWheelId(wheelId);
-      if (wheelImagePreview) {
-        URL.revokeObjectURL(wheelImagePreview);
-      }
+      if (wheelImagePreview) URL.revokeObjectURL(wheelImagePreview);
       setWheelFile(null);
       setWheelImagePreview(null);
     }
   };
 
-  // 휠 사진 직접 등록 처리 (파일 검증 및 메모리 관리)
+  // 즐겨찾기 토글 핸들러
+  const handleToggleFavorite = (e, wheelId) => {
+    e.stopPropagation();
+    setFavoriteWheelIds((prev) => {
+      const next = prev.includes(wheelId)
+        ? prev.filter((id) => id !== wheelId)
+        : [...prev, wheelId];
+      localStorage.setItem('mywheel_favorites', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  // 휠 직접 업로드
   const applyWheelFile = (file) => {
     if (!validateImageFile(file)) return;
-
-    if (wheelImagePreview) {
-      URL.revokeObjectURL(wheelImagePreview);
-    }
-
+    if (wheelImagePreview) URL.revokeObjectURL(wheelImagePreview);
     setWheelFile(file);
     setWheelImagePreview(URL.createObjectURL(file));
     setSelectedWheelId(null);
@@ -129,40 +131,15 @@ function WheelTuning() {
 
   const handleWheelImageUpload = (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      applyWheelFile(file);
-    }
+    if (file) applyWheelFile(file);
   };
 
-  // 직접 올린 휠 사진 삭제 핸들러
   const handleRemoveWheelImage = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (wheelImagePreview) {
-      URL.revokeObjectURL(wheelImagePreview);
-    }
+    if (wheelImagePreview) URL.revokeObjectURL(wheelImagePreview);
     setWheelFile(null);
     setWheelImagePreview(null);
-  };
-
-  // 휠 사진 드래그 앤 드롭 핸들러
-  const handleWheelDragOver = (e) => {
-    e.preventDefault();
-    setIsDraggingWheel(true);
-  };
-
-  const handleWheelDragLeave = (e) => {
-    e.preventDefault();
-    setIsDraggingWheel(false);
-  };
-
-  const handleWheelDrop = (e) => {
-    e.preventDefault();
-    setIsDraggingWheel(false);
-    const file = e.dataTransfer?.files?.[0];
-    if (file) {
-      applyWheelFile(file);
-    }
   };
 
   // AI 휠 합성 요청 함수
@@ -171,7 +148,6 @@ function WheelTuning() {
       alert('튜닝할 자동차 사진을 업로드해 주세요!');
       return;
     }
-
     if (!selectedWheelId && !wheelFile) {
       alert('장착할 휠을 선택하거나 직접 휠 사진을 올려주세요!');
       return;
@@ -186,28 +162,21 @@ function WheelTuning() {
       if (wheelFile) {
         formData.append('uploaded_wheel_image', wheelFile);
       } else if (selectedWheelId) {
-        const selectedPreset = DUMMY_WHEELS.find(
-          (w) => w.id === selectedWheelId
-        );
+        const selectedPreset = WHEEL_ASSETS.find((w) => w.id === selectedWheelId);
         formData.append(
           'selected_asset_id',
-          selectedPreset ? selectedPreset.name : String(selectedWheelId)
+          selectedPreset ? `${selectedPreset.brand} ${selectedPreset.modelName}` : String(selectedWheelId)
         );
       }
 
-      const response = await fetch(
-        'http://localhost:8000/api/v1/custom/synthesize',
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
+      const response = await fetch('http://localhost:8000/api/v1/custom/synthesize', {
+        method: 'POST',
+        body: formData,
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.detail || '합성 요청에 실패했습니다.'
-        );
+        throw new Error(errorData.detail || '합성 요청에 실패했습니다.');
       }
 
       const data = await response.json();
@@ -220,7 +189,7 @@ function WheelTuning() {
     }
   };
 
-  // 결과 이미지 다운로드 핸들러 (경로 선택 창 지원)
+  // 결과 이미지 저장 핸들러
   const handleDownloadImage = async () => {
     if (!resultImageUrl) return;
 
@@ -232,14 +201,8 @@ function WheelTuning() {
       if ('showSaveFilePicker' in window) {
         const handle = await window.showSaveFilePicker({
           suggestedName: defaultFileName,
-          types: [
-            {
-              description: 'JPEG Image',
-              accept: { 'image/jpeg': ['.jpg'] },
-            },
-          ],
+          types: [{ description: 'JPEG Image', accept: { 'image/jpeg': ['.jpg'] } }],
         });
-
         const writable = await handle.createWritable();
         await writable.write(blob);
         await writable.close();
@@ -261,40 +224,32 @@ function WheelTuning() {
     }
   };
 
-  // 다시 만들기 (초기화)
-  const handleReset = () => {
-    setResultImageUrl(null);
-  };
+  const selectedPreset = WHEEL_ASSETS.find((w) => w.id === selectedWheelId);
 
-  const selectedPreset = DUMMY_WHEELS.find((w) => w.id === selectedWheelId);
+  // 브랜드 및 즐겨찾기 필터링 로직
+  const filteredWheels = WHEEL_ASSETS.filter((w) => {
+    if (selectedBrand === 'ALL') return true;
+    if (selectedBrand === '★ FAVORITE') return favoriteWheelIds.includes(w.id);
+    return w.brand === selectedBrand;
+  });
 
   return (
     <div className={styles.tuningContainer}>
-      {/* ----------------- CASE A: 결과 화면 ----------------- */}
       {resultImageUrl ? (
+        /* CASE A: 결과 화면 */
         <div className={styles.resultContainer}>
-          {/* 1. 상단 안내 문구 */}
           <div className={styles.resultHeader}>
             <span className={styles.badgeSuccess}>COMPLETE</span>
             <h2>이미지 생성이 완료되었습니다</h2>
             <p>완성된 나만의 튜닝 차량을 확인하고 고화질로 저장해 보세요</p>
           </div>
 
-          {/* 2. 중앙 완성 사진 프레임 */}
           <div className={styles.resultImageWrapper}>
-            <img
-              src={resultImageUrl}
-              alt="휠 튜닝 완료"
-              className={styles.resultImage}
-            />
+            <img src={resultImageUrl} alt="휠 튜닝 완료" className={styles.resultImage} />
           </div>
 
-          {/* 3. 하단 버튼 그룹 */}
           <div className={styles.resultButtonGroup}>
-            <button
-              onClick={handleDownloadImage}
-              className={styles.saveBtn}
-            >
+            <button onClick={handleDownloadImage} className={styles.saveBtn}>
               <svg className={styles.btnIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="7 10 12 15 17 10" />
@@ -302,11 +257,7 @@ function WheelTuning() {
               </svg>
               이미지 저장하기
             </button>
-
-            <button
-              onClick={handleReset}
-              className={styles.resetBtn}
-            >
+            <button onClick={() => setResultImageUrl(null)} className={styles.resetBtn}>
               <svg className={styles.btnIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                 <path d="M3 3v5h5" />
@@ -316,19 +267,15 @@ function WheelTuning() {
           </div>
         </div>
       ) : (
-        /* ----------------- CASE B: 휠 합성 작업 화면 ----------------- */
+        /* CASE B: 휠 합성 작업 화면 */
         <>
-          {/* 상단 타이틀 영역 */}
           <div className={styles.headerText}>
             <h2>내 차에 어울리는 완벽한 휠을 찾아보세요</h2>
-            <p>
-              차량 사진을 올리고 원하는 휠을 선택하면, AI가 원본 각도와 조명에 맞춰 자연스럽게 합성해 드립니다
-            </p>
+            <p>차량 사진을 올리고 원하는 휠을 선택하면, AI가 원본 각도와 조명에 맞춰 자연스럽게 합성해 드립니다</p>
           </div>
 
-          {/* 메인 작업 영역 */}
           <div className={styles.mainContent}>
-            {/* 1. 왼쪽: 튜닝할 자동차 사진 업로드 박스 */}
+            {/* STEP 1. 차량 사진 등록 카드 */}
             <div className={styles.columnSection}>
               <div className={styles.sectionLabel}>
                 <span className={styles.stepBadge}>STEP 1</span>
@@ -339,9 +286,13 @@ function WheelTuning() {
                 className={`${styles.uploadCard} ${carImagePreview ? styles.hasPreview : ''} ${
                   isDraggingCar ? styles.isDragging : ''
                 }`}
-                onDragOver={handleCarDragOver}
-                onDragLeave={handleCarDragLeave}
-                onDrop={handleCarDrop}
+                onDragOver={(e) => { e.preventDefault(); setIsDraggingCar(true); }}
+                onDragLeave={(e) => { e.preventDefault(); setIsDraggingCar(false); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDraggingCar(false);
+                  applyCarFile(e.dataTransfer?.files?.[0]);
+                }}
               >
                 <input
                   type="file"
@@ -353,16 +304,12 @@ function WheelTuning() {
 
                 {carImagePreview ? (
                   <div className={styles.previewContainer}>
-                    <img
-                      src={carImagePreview}
-                      alt="업로드된 차량"
-                      className={styles.previewImage}
-                    />
-                    {/* 삭제 버튼 */}
+                    <img src={carImagePreview} alt="업로드된 차량" className={styles.previewImage} />
                     <button
                       type="button"
                       className={styles.removeBtn}
                       onClick={handleRemoveCarImage}
+                      title="사진 삭제"
                     >
                       ✕
                     </button>
@@ -387,53 +334,66 @@ function WheelTuning() {
               </label>
             </div>
 
-            {/* 2. 가운데: 공구 아이콘 */}
+            {/* 가운데 공구 결합 아이콘 */}
             <div className={styles.centerIcon}>
               <div className={styles.toolIconWrapper}>
-                <img
-                  src={toolsIconImg}
-                  alt="튜닝 공구 아이콘"
-                  className={styles.toolsImg}
-                />
+                <img src={toolsIconImg} alt="튜닝 공구 아이콘" className={styles.toolsImg} />
               </div>
             </div>
 
-            {/* 3. 오른쪽: 휠 프리셋 그리드 & 직접 추가 */}
+            {/* STEP 2. 장착할 휠 선택 */}
             <div className={styles.columnSection}>
               <div className={styles.sectionLabel}>
                 <span className={styles.stepBadge}>STEP 2</span>
-                <span>
-                  장착할 휠 선택 {selectedPreset && <strong className={styles.selectedWheelLabel}>({selectedPreset.name})</strong>}
-                </span>
+                <span>장착할 휠 선택</span>
               </div>
 
               <div className={styles.wheelSelectionGroup}>
-                {/* 휠 이미지 8개 그리드 */}
-                <div className={styles.wheelGrid}>
-                  {DUMMY_WHEELS.map((wheel) => (
-                    <button
-                      key={wheel.id}
-                      type="button"
-                      title={wheel.name}
-                      className={`${styles.wheelItem} ${
-                        selectedWheelId === wheel.id ? styles.selectedWheel : ''
-                      }`}
-                      onClick={() => handleSelectPresetWheel(wheel.id)}
-                    >
-                      <div className={styles.wheelDisc}>
-                        <div className={styles.wheelSpokeCross} />
-                        <div className={styles.wheelCenterCap} />
+                {/* 휠 에셋 모달 오픈 카드 및 현재 선택 상태 요약 */}
+                <div
+                  className={`${styles.modalOpenCard} ${selectedPreset ? styles.cardActive : ''}`}
+                  onClick={() => setIsWheelModalOpen(true)}
+                >
+                  {selectedPreset ? (
+                    <div className={styles.selectedWheelSummary}>
+                      <img
+                        src={selectedPreset.image}
+                        alt={selectedPreset.modelName}
+                        className={styles.selectedWheelThumb}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
+                      <div className={styles.selectedWheelInfo}>
+                        <span className={styles.selectedBrandBadge}>{selectedPreset.brand}</span>
+                        <h4 className={styles.selectedModelName}>{selectedPreset.modelName}</h4>
+                        <span className={styles.reselectHint}>클릭하여 다른 휠로 변경</span>
                       </div>
-                      <span className={styles.wheelItemName}>{wheel.name}</span>
-
-                      {wheel.isFavorite && (
-                        <span className={styles.starBadge} title="인기 휠">★</span>
-                      )}
-                      {selectedWheelId === wheel.id && (
-                        <div className={styles.checkBadge}>✓</div>
-                      )}
-                    </button>
-                  ))}
+                      <button
+                        type="button"
+                        className={styles.clearWheelBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedWheelId(null);
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div className={styles.modalOpenPlaceholder}>
+                      <div className={styles.catalogIcon}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="3" width="7" height="7" />
+                          <rect x="14" y="3" width="7" height="7" />
+                          <rect x="14" y="14" width="7" height="7" />
+                          <rect x="3" y="14" width="7" height="7" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className={styles.modalOpenPrimary}>휠 카탈로그에서 선택하기</p>
+                        <p className={styles.modalOpenSub}>브랜드별 프리셋 휠 구경 및 선택</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* 휠 사진 직접 추가하기 박스 */}
@@ -441,9 +401,13 @@ function WheelTuning() {
                   className={`${styles.addWheelCard} ${
                     wheelFile ? styles.customWheelSelected : ''
                   } ${isDraggingWheel ? styles.isDragging : ''}`}
-                  onDragOver={handleWheelDragOver}
-                  onDragLeave={handleWheelDragLeave}
-                  onDrop={handleWheelDrop}
+                  onDragOver={(e) => { e.preventDefault(); setIsDraggingWheel(true); }}
+                  onDragLeave={(e) => { e.preventDefault(); setIsDraggingWheel(false); }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingWheel(false);
+                    applyWheelFile(e.dataTransfer?.files?.[0]);
+                  }}
                 >
                   <input
                     type="file"
@@ -482,7 +446,7 @@ function WheelTuning() {
             </div>
           </div>
 
-          {/* 하단 결과보기 버튼 */}
+          {/* 하단 실행 버튼 */}
           <div className={styles.actionGroup}>
             <button
               className={styles.submitBtn}
@@ -500,6 +464,101 @@ function WheelTuning() {
             </button>
           </div>
         </>
+      )}
+
+      {/* ----------------- 휠 에셋 선택 모달 창 ----------------- */}
+      {isWheelModalOpen && (
+        <div className={styles.modalBackdrop} onClick={() => setIsWheelModalOpen(false)}>
+          <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <div>
+                <h3>휠 에셋 카탈로그</h3>
+                <p>장착하고 싶은 브랜드와 휠 모델을 선택하세요</p>
+              </div>
+              <button
+                type="button"
+                className={styles.modalCloseBtn}
+                onClick={() => setIsWheelModalOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 브랜드 탭 필터 */}
+            <div className={styles.brandTabsWrapper}>
+              {BRANDS.map((brand) => (
+                <button
+                  key={brand}
+                  type="button"
+                  className={`${styles.brandTab} ${selectedBrand === brand ? styles.activeBrandTab : ''}`}
+                  onClick={() => setSelectedBrand(brand)}
+                >
+                  {brand}
+                </button>
+              ))}
+            </div>
+
+            {/* 모달 휠 그리드 */}
+            <div className={styles.modalWheelGrid}>
+              {filteredWheels.map((wheel) => (
+                <div
+                  key={wheel.id}
+                  className={`${styles.modalWheelCard} ${
+                    selectedWheelId === wheel.id ? styles.selectedModalWheel : ''
+                  }`}
+                  onClick={() => handleSelectPresetWheel(wheel.id)}
+                >
+                  {/* 즐겨찾기 별 토글 버튼 */}
+                  <button
+                    type="button"
+                    className={`${styles.starBtn} ${
+                      favoriteWheelIds.includes(wheel.id) ? styles.starActive : ''
+                    }`}
+                    onClick={(e) => handleToggleFavorite(e, wheel.id)}
+                    title={favoriteWheelIds.includes(wheel.id) ? '즐겨찾기 해제' : '즐겨찾기 추가'}
+                  >
+                    ★
+                  </button>
+
+                  <div className={styles.wheelImageFrame}>
+                    <img
+                      src={wheel.image}
+                      alt={wheel.modelName}
+                      className={styles.wheelAssetImg}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        if (e.currentTarget.nextElementSibling) {
+                          e.currentTarget.nextElementSibling.style.display = 'flex';
+                        }
+                      }}
+                    />
+                    <div className={styles.wheelDiscFallback} style={{ display: 'none' }}>
+                      <div className={styles.wheelSpokeCross} />
+                      <div className={styles.wheelCenterCap} />
+                    </div>
+                  </div>
+
+                  <div className={styles.wheelMeta}>
+                    <span className={styles.wheelBrandTag}>{wheel.brand}</span>
+                    <strong className={styles.wheelModelTitle}>{wheel.modelName}</strong>
+                  </div>
+
+                  {selectedWheelId === wheel.id && <div className={styles.checkBadge}>✓</div>}
+                </div>
+              ))}
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                type="button"
+                className={styles.modalConfirmBtn}
+                onClick={() => setIsWheelModalOpen(false)}
+              >
+                선택 완료
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
