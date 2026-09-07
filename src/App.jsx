@@ -19,6 +19,7 @@ import MapPage from './pages/MapPage';
 import PostList from './PostList';
 import PostCreate from './PostCreate';
 import PostDetail from './PostDetail';
+import PostEdit from './PostEdit'; // 게시글 수정 페이지 (오늘 추가)
 
 
 // // 임시 페이지 컴포넌트 (추후 실제 파일 작성 시 임포트 경로 변경)
@@ -50,6 +51,7 @@ function App() {
         <Route path="/community" element={<PostList />} />
         <Route path="/community/create" element={<PostCreate />} />
         <Route path="/posts/:id" element={<PostDetail />} />
+        <Route path="/community/edit/:id" element={<PostEdit />} /> {/* 게시글 수정 라우트 (오늘 추가) */}
       </Routes>
     </Router>
   );
