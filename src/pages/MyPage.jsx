@@ -1,23 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import EditProfileModal from '../components/EditProfileModal';
+import EditVehicleModal from '../components/EditVehicleModal';
 import WheelDetailModal from '../components/WheelDetailModal';
 import styles from './MyPage.module.css';
 
 import carImg from '../assets/homepage/car_before.png';
-import carAfterImg from '../assets/homepage/car_after.png';
 import wheelImg from '../assets/homepage/wheel_main.png';
-
-const GALLERY_IMAGES = [
-  carImg,
-  carAfterImg,
-  carImg,
-  carAfterImg,
-  carImg,
-  carAfterImg,
-  carImg,
-  carAfterImg,
-];
 
 const DEFAULT_WHEEL_DETAIL = {
   specs: [
@@ -83,6 +72,11 @@ function MyPage() {
   const [selectedWheel, setSelectedWheel] = useState(null);
   // 로그인하지 않았거나 아직 응답이 오기 전에는 기본값을 보여준다.
   const [profile, setProfile] = useState(DEFAULT_PROFILE);
+  // 로그인 전이거나 아직 등록된 차량이 없으면 null.
+  const [vehicle, setVehicle] = useState(null);
+  const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
+  // /custom/tuning 에서 만든 내 합성 사진 목록 (최근 생성 순).
+  const [galleryImages, setGalleryImages] = useState([]);
   // 회원 정보 수정(PUT /users/me) 요청 시 "나"를 식별하는 데 필요하다.
   const userId = getStoredUserId();
 
@@ -107,6 +101,34 @@ function MyPage() {
       });
   }, [userId]);
 
+  // 마운트 시 /vehicles/me 를 호출해 내가 등록해둔 차량(사진/제원)을 받아온다.
+  useEffect(() => {
+    if (!userId) return;
+
+    fetch(`${API_BASE_URL}/vehicles/me`, {
+      headers: { 'X-User-Id': String(userId) },
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data) => setVehicle(data ?? null))
+      .catch(() => {
+        // 네트워크 오류 등의 경우 "차량 없음" 상태를 그대로 유지한다.
+      });
+  }, [userId]);
+
+  // 마운트 시 /api/v1/custom/gallery 를 호출해 내가 생성한 합성 사진을 최근 생성 순으로 받아온다.
+  useEffect(() => {
+    if (!userId) return;
+
+    fetch(`${API_BASE_URL}/api/v1/custom/gallery`, {
+      headers: { 'X-User-Id': String(userId) },
+    })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((data) => setGalleryImages(Array.isArray(data) ? data : []))
+      .catch(() => {
+        // 네트워크 오류 등의 경우 빈 갤러리 상태를 그대로 유지한다.
+      });
+  }, [userId]);
+
   const maxIndex = Math.max(0, FAVORITE_WHEELS.length - VISIBLE_WHEELS);
 
   const prevWheels = () => {
@@ -119,8 +141,8 @@ function MyPage() {
 
   const visibleWheels = FAVORITE_WHEELS.slice(wheelIndex, wheelIndex + VISIBLE_WHEELS);
 
-  const galleryPageCount = Math.ceil(GALLERY_IMAGES.length / GALLERY_IMAGES_PER_PAGE);
-  const visibleGalleryImages = GALLERY_IMAGES.slice(
+  const galleryPageCount = Math.ceil(galleryImages.length / GALLERY_IMAGES_PER_PAGE);
+  const visibleGalleryImages = galleryImages.slice(
     galleryPage * GALLERY_IMAGES_PER_PAGE,
     galleryPage * GALLERY_IMAGES_PER_PAGE + GALLERY_IMAGES_PER_PAGE,
   );
@@ -176,20 +198,32 @@ function MyPage() {
           {/* 차량 정보 */}
           <section className={`${styles.card} ${styles.carCard}`}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>현대 그랜저 IG</h2>
-              <Link to="/custom" className={styles.redBtn}>
-                차량 추가 +
-              </Link>
+              <h2 className={styles.cardTitle}>{vehicle?.name ?? '차량 정보 없음'}</h2>
+              <button
+                type="button"
+                className={styles.redBtn}
+                onClick={() => setIsVehicleModalOpen(true)}
+              >
+                {vehicle ? '차량 정보 수정' : '차량 추가 +'}
+              </button>
             </div>
             <div className={styles.carImageWrap}>
-              <img src={carImg} alt="현대 그랜저 IG" className={styles.carImage} />
+              <img
+                src={vehicle?.image_url ?? carImg}
+                alt={vehicle?.name ?? '차량 사진 없음'}
+                className={styles.carImage}
+              />
             </div>
-            <ul className={styles.specList}>
-              <li>PCD : 114.3 mm</li>
-              <li>홀 수 : 5홀</li>
-              <li>허브 보어 : 67.1 mm</li>
-              <li>볼트 규격 : M12 × 1.5</li>
-            </ul>
+            {vehicle ? (
+              <ul className={styles.specList}>
+                <li>PCD : {vehicle.pcd || '-'}</li>
+                <li>홀 수 : {vehicle.hole_count || '-'}</li>
+                <li>허브 보어 : {vehicle.hub_bore || '-'}</li>
+                <li>볼트 규격 : {vehicle.bolt_spec || '-'}</li>
+              </ul>
+            ) : (
+              <p className={styles.specList}>차량을 등록하면 사진과 제원이 표시됩니다.</p>
+            )}
           </section>
         </div>
 
@@ -198,36 +232,41 @@ function MyPage() {
           {/* 내 갤러리 */}
           <section className={`${styles.card} ${styles.galleryCard}`}>
             <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>내 갤러리 (20장)</h2>
+              <h2 className={styles.cardTitle}>내 갤러리 ({galleryImages.length}장)</h2>
               <Link to="/custom" className={styles.redBtn}>
                 사진 생성
               </Link>
             </div>
             <div className={styles.galleryInner}>
-              <div className={styles.galleryGrid}>
-                {visibleGalleryImages.map((src, index) => {
-                  const imageNumber = galleryPage * GALLERY_IMAGES_PER_PAGE + index + 1;
-                  return (
-                    <div key={imageNumber} className={styles.galleryItem}>
-                      <img src={src} alt={`갤러리 사진 ${imageNumber}`} />
+              {galleryImages.length === 0 ? (
+                <p className={styles.galleryEmpty}>
+                  아직 생성한 사진이 없습니다. 휠 튜닝에서 만들어보세요!
+                </p>
+              ) : (
+                <>
+                  <div className={styles.galleryGrid}>
+                    {visibleGalleryImages.map((image) => (
+                      <div key={image.id} className={styles.galleryItem}>
+                        <img src={image.image_url} alt="내가 생성한 튜닝 사진" />
+                      </div>
+                    ))}
+                  </div>
+                  {galleryPageCount > 1 && (
+                    <div className={styles.galleryPagination} role="navigation" aria-label="갤러리 페이지">
+                      {Array.from({ length: galleryPageCount }, (_, pageIndex) => (
+                        <button
+                          key={pageIndex}
+                          type="button"
+                          className={`${styles.pageBtn} ${galleryPage === pageIndex ? styles.pageBtnActive : ''}`}
+                          onClick={() => setGalleryPage(pageIndex)}
+                          aria-current={galleryPage === pageIndex ? 'page' : undefined}
+                        >
+                          {pageIndex + 1}
+                        </button>
+                      ))}
                     </div>
-                  );
-                })}
-              </div>
-              {galleryPageCount > 1 && (
-                <div className={styles.galleryPagination} role="navigation" aria-label="갤러리 페이지">
-                  {Array.from({ length: galleryPageCount }, (_, pageIndex) => (
-                    <button
-                      key={pageIndex}
-                      type="button"
-                      className={`${styles.pageBtn} ${galleryPage === pageIndex ? styles.pageBtnActive : ''}`}
-                      onClick={() => setGalleryPage(pageIndex)}
-                      aria-current={galleryPage === pageIndex ? 'page' : undefined}
-                    >
-                      {pageIndex + 1}
-                    </button>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
           </section>
@@ -286,6 +325,13 @@ function MyPage() {
         isOpen={Boolean(selectedWheel)}
         wheel={selectedWheel}
         onClose={() => setSelectedWheel(null)}
+      />
+      <EditVehicleModal
+        isOpen={isVehicleModalOpen}
+        onClose={() => setIsVehicleModalOpen(false)}
+        userId={userId}
+        vehicle={vehicle}
+        onConfirm={(updatedVehicle) => setVehicle(updatedVehicle)}
       />
     </div>
   );
