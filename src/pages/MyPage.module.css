@@ -297,11 +297,11 @@
 }
 
 .wheelImageWrap {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
+  width: auto;
+  height: 150px;
+  border-radius: 10%;
   overflow: hidden;
-  background-color: #cfcfcf;
+  background-color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;

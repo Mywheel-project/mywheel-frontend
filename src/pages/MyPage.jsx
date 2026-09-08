@@ -6,7 +6,7 @@ import styles from './MyPage.module.css';
 
 import carImg from '../assets/homepage/car_before.png';
 import carAfterImg from '../assets/homepage/car_after.png';
-import wheelImg from '../assets/homepage/wheel_main.png';
+import { WHEEL_ASSETS } from '../data/wheels';
 
 const GALLERY_IMAGES = [
   carImg,
@@ -43,15 +43,6 @@ const DEFAULT_WHEEL_DETAIL = {
   ],
 };
 
-const FAVORITE_WHEELS = [
-  { id: 1, name: '현대 코나 N 휠1', image: wheelImg, ...DEFAULT_WHEEL_DETAIL },
-  { id: 2, name: '현대 코나 N 휠2', image: wheelImg, ...DEFAULT_WHEEL_DETAIL },
-  { id: 3, name: '현대 코나 N 휠3', image: wheelImg, ...DEFAULT_WHEEL_DETAIL },
-  { id: 4, name: '현대 코나 N 휠4', image: wheelImg, ...DEFAULT_WHEEL_DETAIL },
-  { id: 5, name: '현대 코나 N 휠5', image: wheelImg, ...DEFAULT_WHEEL_DETAIL },
-  { id: 6, name: '현대 코나 N 휠6', image: wheelImg, ...DEFAULT_WHEEL_DETAIL },
-];
-
 const VISIBLE_WHEELS = 3;
 const GALLERY_IMAGES_PER_PAGE = 6;
 
@@ -81,6 +72,7 @@ function MyPage() {
   const [wheelIndex, setWheelIndex] = useState(0);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedWheel, setSelectedWheel] = useState(null);
+  const [favoriteWheelIds, setFavoriteWheelIds] = useState([]);
   // 로그인하지 않았거나 아직 응답이 오기 전에는 기본값을 보여준다.
   const [profile, setProfile] = useState(DEFAULT_PROFILE);
   // 회원 정보 수정(PUT /users/me) 요청 시 "나"를 식별하는 데 필요하다.
@@ -107,7 +99,36 @@ function MyPage() {
       });
   }, [userId]);
 
-  const maxIndex = Math.max(0, FAVORITE_WHEELS.length - VISIBLE_WHEELS);
+  // 로그인 시 서버 DB에서 즐겨찾기한 휠 ID 목록을 조회
+  useEffect(() => {
+    if (!userId) return;
+
+    fetch(`${API_BASE_URL}/api/v1/favorites/wheels?user_id=${userId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && Array.isArray(data.favorite_wheel_ids)) {
+          setFavoriteWheelIds(data.favorite_wheel_ids);
+        }
+      })
+      .catch((err) => {
+        console.error('즐겨찾기 휠 조회 실패:', err);
+      });
+  }, [userId]);
+
+  // 즐겨찾기 휠 ID에 해당하는 실제 에셋 정보 매핑
+  const favoriteWheels = favoriteWheelIds
+    .map((id) => WHEEL_ASSETS.find((w) => w.id === id))
+    .filter(Boolean)
+    .map((w) => ({
+      id: w.id,
+      name: `${w.brand} ${w.modelName}`,
+      brand: w.brand,
+      modelName: w.modelName,
+      image: w.image,
+      ...DEFAULT_WHEEL_DETAIL,
+    }));
+
+  const maxIndex = Math.max(0, favoriteWheels.length - VISIBLE_WHEELS);
 
   const prevWheels = () => {
     setWheelIndex((prev) => Math.max(0, prev - 1));
@@ -117,7 +138,7 @@ function MyPage() {
     setWheelIndex((prev) => Math.min(maxIndex, prev + 1));
   };
 
-  const visibleWheels = FAVORITE_WHEELS.slice(wheelIndex, wheelIndex + VISIBLE_WHEELS);
+  const visibleWheels = favoriteWheels.slice(wheelIndex, wheelIndex + VISIBLE_WHEELS);
 
   const galleryPageCount = Math.ceil(GALLERY_IMAGES.length / GALLERY_IMAGES_PER_PAGE);
   const visibleGalleryImages = GALLERY_IMAGES.slice(
@@ -234,42 +255,51 @@ function MyPage() {
 
           {/* 휠 즐겨찾기 */}
           <section className={`${styles.card} ${styles.favoritesCard}`}>
-            <h2 className={styles.cardTitle}>휠 즐겨찾기 (20장)</h2>
-            <div className={styles.carousel}>
-              <button
-                type="button"
-                className={styles.arrowBtn}
-                onClick={prevWheels}
-                disabled={wheelIndex === 0}
-                aria-label="이전 휠"
-              >
-                ◀
-              </button>
-              <div className={styles.wheelList}>
-                {visibleWheels.map((wheel) => (
-                  <button
-                    key={wheel.id}
-                    type="button"
-                    className={styles.wheelItem}
-                    onClick={() => setSelectedWheel(wheel)}
-                  >
-                    <div className={styles.wheelImageWrap}>
-                      <img src={wheel.image} alt={wheel.name} />
-                    </div>
-                    <span className={styles.wheelName}>{wheel.name}</span>
-                  </button>
-                ))}
+            <h2 className={styles.cardTitle}>휠 즐겨찾기 ({favoriteWheels.length}개)</h2>
+            {favoriteWheels.length > 0 ? (
+              <div className={styles.carousel}>
+                <button
+                  type="button"
+                  className={styles.arrowBtn}
+                  onClick={prevWheels}
+                  disabled={wheelIndex === 0}
+                  aria-label="이전 휠"
+                >
+                  ◀
+                </button>
+                <div className={styles.wheelList}>
+                  {visibleWheels.map((wheel) => (
+                    <button
+                      key={wheel.id}
+                      type="button"
+                      className={styles.wheelItem}
+                      onClick={() => setSelectedWheel(wheel)}
+                    >
+                      <div className={styles.wheelImageWrap}>
+                        <img src={wheel.image} alt={wheel.name} />
+                      </div>
+                      <span className={styles.wheelName}>{wheel.name}</span>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className={styles.arrowBtn}
+                  onClick={nextWheels}
+                  disabled={wheelIndex >= maxIndex}
+                  aria-label="다음 휠"
+                >
+                  ▶
+                </button>
               </div>
-              <button
-                type="button"
-                className={styles.arrowBtn}
-                onClick={nextWheels}
-                disabled={wheelIndex >= maxIndex}
-                aria-label="다음 휠"
-              >
-                ▶
-              </button>
-            </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#888' }}>
+                <p style={{ margin: '0 0 1rem 0' }}>즐겨찾기한 휠이 없습니다.</p>
+                <Link to="/custom" className={styles.redBtn}>
+                  휠 둘러보기
+                </Link>
+              </div>
+            )}
           </section>
         </div>
       </div>
