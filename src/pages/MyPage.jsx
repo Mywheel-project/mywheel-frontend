@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import EditProfileModal from '../components/EditProfileModal';
-import WheelDetailModal from '../components/WheelDetailModal';
 import styles from './MyPage.module.css';
 
 import carImg from '../assets/homepage/car_before.png';
@@ -19,29 +18,6 @@ const GALLERY_IMAGES = [
   carAfterImg,
 ];
 
-const DEFAULT_WHEEL_DETAIL = {
-  specs: [
-    '휠 사이즈 : 19인치',
-    '림 폭 및 오프셋 8.0J +55',
-    'PCD 114.3',
-    '허브 보어 67.1 mm',
-  ],
-  fitmentGuide: [
-    {
-      title: '① 1인치 다운 (18인치)',
-      paragraphs: [
-        '승차감 및 경제성: 많은 코나 N 유저들이 승차감 개선과 타이어 비용 절감을 위해 18인치로 인치 다운을 합니다. (추천 타이어: 235/45R18 또는 245/40R18)',
-      ],
-    },
-    {
-      title: '② 오프셋(Offset)과 돌출',
-      bullets: [
-        '추천 사양: 8.5J +45에서 +50 사이가 가장 대중적입니다.',
-        '돌출 주의: +45 미만(예: +35 등)으로 내려가면 휠이 휀더 밖으로 돌출되어 자동차 검사 시 문제가 되거나, 과격한 주행 시 간섭이 생길 수 있습니다.',
-      ],
-    },
-  ],
-};
 
 const VISIBLE_WHEELS = 3;
 const GALLERY_IMAGES_PER_PAGE = 6;
@@ -71,7 +47,6 @@ function MyPage() {
   const [galleryPage, setGalleryPage] = useState(0);
   const [wheelIndex, setWheelIndex] = useState(0);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [selectedWheel, setSelectedWheel] = useState(null);
   const [favoriteWheelIds, setFavoriteWheelIds] = useState([]);
   // 로그인하지 않았거나 아직 응답이 오기 전에는 기본값을 보여준다.
   const [profile, setProfile] = useState(DEFAULT_PROFILE);
@@ -125,7 +100,6 @@ function MyPage() {
       brand: w.brand,
       modelName: w.modelName,
       image: w.image,
-      ...DEFAULT_WHEEL_DETAIL,
     }));
 
   const maxIndex = Math.max(0, favoriteWheels.length - VISIBLE_WHEELS);
@@ -269,17 +243,12 @@ function MyPage() {
                 </button>
                 <div className={styles.wheelList}>
                   {visibleWheels.map((wheel) => (
-                    <button
-                      key={wheel.id}
-                      type="button"
-                      className={styles.wheelItem}
-                      onClick={() => setSelectedWheel(wheel)}
-                    >
+                    <div key={wheel.id} className={styles.wheelItem}>
                       <div className={styles.wheelImageWrap}>
                         <img src={wheel.image} alt={wheel.name} />
                       </div>
                       <span className={styles.wheelName}>{wheel.name}</span>
-                    </button>
+                    </div>
                   ))}
                 </div>
                 <button
@@ -311,11 +280,6 @@ function MyPage() {
         initialName={profile.name}
         initialEmail={profile.email}
         onConfirm={handleConfirmProfile}
-      />
-      <WheelDetailModal
-        isOpen={Boolean(selectedWheel)}
-        wheel={selectedWheel}
-        onClose={() => setSelectedWheel(null)}
       />
     </div>
   );
