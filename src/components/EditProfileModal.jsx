@@ -1,9 +1,13 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import styles from './EditProfileModal.module.css';
 
+// FastAPI 백엔드 주소. 배포 시에는 .env(VITE_API_BASE_URL)로 분리하는 게 좋다.
+const API_BASE_URL = 'http://localhost:8000';
+
 function EditProfileModal({
   isOpen,
   onClose,
+  userId,
   initialName = '닉네임(이름)',
   initialEmail = 'example@gmail.com',
   onConfirm,
@@ -13,6 +17,9 @@ function EditProfileModal({
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState(initialEmail);
   const [previewUrl, setPreviewUrl] = useState(null);
+  // 제출 중 중복 클릭 방지 + 에러 메시지 표시용 상태
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -20,6 +27,7 @@ function EditProfileModal({
     setName(initialName);
     setEmail(initialEmail);
     setPreviewUrl(null);
+    setErrorMessage('');
 
     const onKeyDown = (event) => {
       if (event.key === 'Escape') onClose();
@@ -59,9 +67,39 @@ function EditProfileModal({
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  const handleConfirm = () => {
-    onConfirm?.({ name, email, previewUrl });
-    onClose();
+  const handleConfirm = async () => {
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    try {
+      // 프로필 사진(previewUrl)은 아직 서버에 반영하지 않고, 닉네임/이메일만 수정한다.
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': String(userId),
+        },
+        body: JSON.stringify({ email, nickname: name }),
+      });
+
+      const body = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const detail = body?.detail;
+        const message = Array.isArray(detail)
+          ? detail.map((item) => item.msg).join(', ')
+          : detail || '회원 정보 수정에 실패했습니다.';
+        throw new Error(message);
+      }
+
+      // body 는 DB에 반영된 최신 { id, email, nickname, profile_image } - 그대로 상위로 전달한다.
+      onConfirm?.(body);
+      onClose();
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -135,12 +173,19 @@ function EditProfileModal({
             </label>
           </div>
 
+          {errorMessage && <p className={styles.errorText}>{errorMessage}</p>}
+
           <div className={styles.actions}>
             <button type="button" className={styles.cancelBtn} onClick={onClose}>
               취소
             </button>
-            <button type="button" className={styles.confirmBtn} onClick={handleConfirm}>
-              확인
+            <button
+              type="button"
+              className={styles.confirmBtn}
+              onClick={handleConfirm}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? '저장 중...' : '확인'}
             </button>
           </div>
         </div>

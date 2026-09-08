@@ -7,6 +7,9 @@ const TERMS = [
   { key: 'marketing', label: '마케팅 수신 동의(선택)', required: false },
 ];
 
+// FastAPI 백엔드 주소. 배포 시에는 .env(VITE_API_BASE_URL)로 분리하는 게 좋다.
+const API_BASE_URL = 'http://localhost:8000';
+
 function SignupModal({ isOpen, onClose }) {
   const titleId = useId();
   const [nickname, setNickname] = useState('');
@@ -18,6 +21,9 @@ function SignupModal({ isOpen, onClose }) {
     privacy: false,
     marketing: false,
   });
+  // 제출 중 중복 클릭 방지 + 에러 메시지 표시용 상태
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const allChecked = TERMS.every((term) => agreements[term.key]);
 
@@ -29,6 +35,7 @@ function SignupModal({ isOpen, onClose }) {
     setPassword('');
     setPasswordConfirm('');
     setAgreements({ service: false, privacy: false, marketing: false });
+    setErrorMessage('');
 
     const onKeyDown = (event) => {
       if (event.key === 'Escape') onClose();
@@ -63,9 +70,49 @@ function SignupModal({ isOpen, onClose }) {
     setAgreements((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    onClose();
+    setErrorMessage('');
+
+    // 필수 약관(서비스 이용약관, 개인정보 수집)에 동의하지 않으면 요청을 보내지 않는다.
+    const requiredAgreed = TERMS.filter((term) => term.required).every(
+      (term) => agreements[term.key]
+    );
+    if (!requiredAgreed) {
+      setErrorMessage('필수 약관에 동의해주세요.');
+      return;
+    }
+
+    if (password !== passwordConfirm) {
+      setErrorMessage('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, nickname }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        // FastAPI 에러 응답은 detail 필드에 메시지(문자열) 또는
+        // 검증 오류 배열이 담기므로 두 형태를 모두 처리한다.
+        const detail = body?.detail;
+        const message = Array.isArray(detail)
+          ? detail.map((item) => item.msg).join(', ')
+          : detail || '회원가입에 실패했습니다.';
+        throw new Error(message);
+      }
+
+      onClose();
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -232,8 +279,10 @@ function SignupModal({ isOpen, onClose }) {
             ))}
           </div>
 
-          <button type="submit" className={styles.submitBtn}>
-            회원가입하기
+          {errorMessage && <p className={styles.errorText}>{errorMessage}</p>}
+
+          <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
+            {isSubmitting ? '가입 처리 중...' : '회원가입하기'}
           </button>
         </form>
 

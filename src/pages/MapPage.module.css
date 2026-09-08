@@ -1,0 +1,29 @@
+.page {
+  width: 100%;
+  padding: 1.5rem 3rem;
+  box-sizing: border-box;
+}
+
+.mapContainer {
+  width: 100%;
+  height: 70vh;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #eee; /* 지도가 로드되기 전 표시되는 배경 */
+}
+
+.errorText {
+  margin: 0 0 1rem;
+  color: #e03131;
+  font-weight: 600;
+}
+
+/* 정비업체 핀(빨간 마커)과 구분되는 "내 위치" 파란 점 */
+.myLocationDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #4285f4;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.45);
+}

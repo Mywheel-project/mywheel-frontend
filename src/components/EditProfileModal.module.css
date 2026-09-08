@@ -141,6 +141,12 @@
   background-color: #e0e0e0;
 }
 
+.errorText {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #e03131;
+}
+
 .actions {
   display: flex;
   justify-content: space-between;

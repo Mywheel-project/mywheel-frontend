@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import styles from './Home.module.css';
 
 // 사용할 이미지 경로 
-import mainLogoImg from '../assets/mywheellogo2.png'; 
+import mainLogoImg from '../assets/Mywheellogo2.png';
 import TireStackGraphic from '../components/TireStackGraphic'; // 생성한 컴포넌트 임포트
 import carBeforeImg from '../assets/homepage/car_before.png'; 
 import carAfterImg from '../assets/homepage/car_after.png'; 
