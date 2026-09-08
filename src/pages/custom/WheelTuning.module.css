@@ -585,7 +585,7 @@
 /* 브랜드 탭 필터 */
 .brandTabsWrapper {
   display: flex;
-  gap: 0.5rem;
+  gap: 2rem;
   padding: 1rem 2rem;
   overflow-x: auto;
   border-bottom: 1px solid #F0F0F0;
