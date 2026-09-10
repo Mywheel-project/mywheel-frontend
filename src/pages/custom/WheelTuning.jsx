@@ -17,6 +17,19 @@ const DUMMY_WHEELS = [
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
+// Header 에서 로그인 성공 시 저장하는 것과 동일한 localStorage 키.
+// 로그인 상태면 합성 결과를 내 갤러리에 남기기 위해 유저 id를 함께 보낸다.
+const USER_STORAGE_KEY = 'mywheel_user';
+
+function getStoredUserId() {
+  try {
+    const saved = localStorage.getItem(USER_STORAGE_KEY);
+    return saved ? JSON.parse(saved)?.id ?? null : null;
+  } catch {
+    return null;
+  }
+}
+
 function WheelTuning() {
   // 1. 차량 사진 관련 State
   const [carFile, setCarFile] = useState(null);
@@ -195,10 +208,13 @@ function WheelTuning() {
         );
       }
 
+      const userId = getStoredUserId();
+
       const response = await fetch(
         'http://localhost:8000/api/v1/custom/synthesize',
         {
           method: 'POST',
+          headers: userId ? { 'X-User-Id': String(userId) } : undefined,
           body: formData,
         }
       );
