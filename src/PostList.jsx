@@ -1,67 +1,81 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 페이지 이동을 위한 훅
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+// AuthContext/useAuth 대신 main 프로젝트의 로그인 방식을 그대로 사용.
+// Header.jsx, pages/MyPage.jsx와 동일하게 localStorage에 저장된 로그인 유저 정보를 직접 읽는다.
+const USER_STORAGE_KEY = 'mywheel_user';
+
+function getStoredUserId() {
+  try {
+    const saved = localStorage.getItem(USER_STORAGE_KEY);
+    return saved ? JSON.parse(saved)?.id ?? null : null;
+  } catch {
+    return null;
+  }
+}
 
 export default function PostList() {
   const navigate = useNavigate();
   const [currentTab, setCurrentTab] = useState('All');
-  const [isModalOpen, setIsModalOpen] = useState(false); // 새 글 쓰기 팝업 상태
+  const userId = getStoredUserId();
+  const isLoggedIn = !!userId;
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // 글쓰기 폼 내부 입력 상태
-  const [category, setCategory] = useState('Tunning Review');
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [images, setImages] = useState([]);
-
-  // 임시 게시글 데이터
-  const dummyPosts = [
-    { id: 1, category: 'Tunning Review', title: '[Tunning Review] 드디어 드림 휠 올렸습니다!', nickname: 'rudtnsiasia', view_count: 206, likes: 63, content: '드디어 고민 끝에 드림 휠로 교체했습니다. 자세도 너무 예쁘고 주행 감도 만족스럽네요!' },
-    { id: 2, category: 'Community posts', title: '아반떼 N에 어울리는 경량 휠 추천 해줘요!!', nickname: 'writer1', view_count: 150, likes: 42, content: '서킷 주행도 가끔 하는데, 아반떼 N에 찰떡인 경량 휠 추천 부탁드립니다.' },
-    { id: 3, category: 'Q&A', title: '옵셋 계산기 돌려봤는데, 이 수치면 돌출 검사 통과할까요?', nickname: 'writer3', view_count: 88, likes: 12, content: '순정 19인치에서 8.5J +45로 가려고 하는데 검사 때 무사히 통과할지 걱정입니다.' },
-  ];
-
-  const hotPosts = [
-    { id: 101, title: '국산차 전용 휠 옵셋 완벽 가이드', view_count: 512, likes: 120, nickname: '관리자', content: '국산차 오너분들을 위한 휠 옵셋 가이드 총정리 내용입니다.' },
-    { id: 102, title: '순정 휠인 줄 알았는데...', view_count: 430, likes: 98, nickname: '휠고수', content: '겉보기엔 순정 같은데 알고 보니 엄청난 하이퍼포먼스 휠이었던 건에 대하여.' },
-    { id: 103, title: '300만 원 태운 결과물 공유', view_count: 380, likes: 85, nickname: '튜닝광', content: '이번에 큰맘 먹고 300만 원 투자해서 하체 튜닝까지 싹 끝냈습니다.' },
-  ];
-
-  const filteredPosts = currentTab === 'All' 
-    ? dummyPosts 
-    : dummyPosts.filter(post => post.category === currentTab);
-
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    const newImageUrls = files.map(file => URL.createObjectURL(file));
-    setImages(prev => [...prev, ...newImageUrls]);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!title.trim() || !content.trim()) {
-      alert('제목과 내용을 모두 입력해주세요!');
-      return;
+  // 🔥 1. 백엔드 FastAPI로부터 실제 DB에 저장된 게시글 목록 가져오기
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:8000/api/posts');
+      if (response.ok) {
+        const data = await response.json();
+        setPosts(data);
+      } else {
+        console.error('게시글 목록 불러오기 실패');
+      }
+    } catch (error) {
+      console.error('서버 통신 에러:', error);
+    } finally {
+      setLoading(false);
     }
-    alert('게시글이 성공적으로 등록되었습니다!');
-    setIsModalOpen(false);
-    setTitle('');
-    setContent('');
-    setImages([]);
   };
+
+  useEffect(() => {
+    fetchPosts();
+    fetchHotPosts();
+  }, []);
+    const [hotPosts, setHotPosts] = useState([]);
+
+  const fetchHotPosts = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/posts/hot');
+      if (response.ok) {
+        const data = await response.json();
+        setHotPosts(data);
+      }
+    } catch (error) {
+      console.error('핫게시물 불러오기 실패:', error);
+    }
+  }; 
+
+
+  // 탭 필터링 로직 (제목 앞 [카테고리] 문자열 매칭)
+  const filteredPosts = currentTab === 'All'
+  ? posts
+  : currentTab === 'My Posts'
+    ? (isLoggedIn ? posts.filter((post) => post.user_id === userId) : [])
+    : posts.filter((post) => post.title && post.title.startsWith(`[${currentTab}]`));
 
   return (
     <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, paddingBottom: '40px' }}>
       
-      {/* 💡 헤더는 원래 사용하시던 컴포넌트나 레이아웃이 있다면 그걸 그대로 쓰시면 됩니다! 
-        (여기서는 예시로 상단 여백만 남겨둡니다) 
-      */}
-
       {/* 메인 컨텐츠 영역 */}
       <div style={{ maxWidth: '1100px', margin: '40px auto', backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
         
         {/* 상단 카테고리 탭 & 검색바 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: '1px solid #ddd', paddingBottom: '20px' }}>
           <div style={{ display: 'flex', gap: '10px' }}>
-            {['All', 'Tunning Review', 'Q&A', 'Community posts', 'My Posts'].map((tab) => (
+            {['All', 'Tunning Review', 'Q&A', 'My Posts'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setCurrentTab(tab)}
@@ -96,37 +110,42 @@ export default function PostList() {
           
           {/* 좌측 게시글 목록 */}
           <div style={{ flex: 2.5 }}>
-            {filteredPosts.length > 0 ? (
+                        {loading ? (
+              <p style={{ textAlign: 'center', color: '#888', padding: '40px 0' }}>게시글을 불러오는 중입니다... ⏳</p>
+            ) : currentTab === 'My Posts' && !isLoggedIn ? (
+              <p style={{ textAlign: 'center', color: '#888', padding: '40px 0' }}>로그인 후 내가 쓴 글을 확인할 수 있습니다.</p>
+            ) : filteredPosts.length > 0 ? (
               filteredPosts.map((post) => (
                 <div 
                   key={post.id} 
                   onClick={() => navigate(`/posts/${post.id}`)} // 클릭 시 상세 페이지로 이동
                   style={{ border: '1px solid #e0e0e0', borderRadius: '8px', padding: '20px', marginBottom: '15px', backgroundColor: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', transition: '0.2s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fafafa'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fafafa')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
                 >
                   <div>
-                    <span style={{ fontSize: '12px', color: '#e74c3c', fontWeight: 'bold' }}>[{post.category}]</span>
                     <h3 style={{ margin: '8px 0', fontSize: '16px', color: '#222' }}>{post.title}</h3>
-                    <span style={{ fontSize: '13px', color: '#888' }}>writer: <strong style={{ color: '#555' }}>{post.nickname}</strong></span>
+                    <span style={{ fontSize: '13px', color: '#888' }}>
+                      작성자: <strong style={{ color: '#555' }}>{post.author || '익명'}</strong> · {post.created_at ? new Date(post.created_at).toLocaleDateString() : ''}
+                    </span>
                   </div>
                   <div style={{ display: 'flex', gap: '15px', fontSize: '13px', color: '#777' }}>
-                    <span>👁️ {post.view_count}</span>
-                    <span>❤️ {post.likes}</span>
+                    <span>👁️ {post.view_count ?? 0}</span>
+                    <span>❤️ {post.likes_count ?? 0}</span>
                   </div>
                 </div>
               ))
             ) : (
-              <p style={{ textAlign: 'center', color: '#888', padding: '40px 0' }}>해당 카테고리에 작성된 글이 없습니다.</p>
+              <p style={{ textAlign: 'center', color: '#888', padding: '40px 0' }}>등록된 게시글이 없습니다. 첫 글을 작성해 보세요!</p>
             )}
 
-            {/* 글쓰기 버튼 */}
+            {/* 🔥 2. 글쓰기 버튼 클릭 시 PostCreate 페이지(/community/create)로 이동 */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
               <button 
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => navigate('/community/create')}
                 style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '5px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
               >
-                글쓰기 +
+                ✏️ 글쓰기
               </button>
             </div>
           </div>
@@ -139,14 +158,13 @@ export default function PostList() {
               {hotPosts.map((hot, index) => (
                 <div 
                   key={hot.id} 
-                  onClick={() => navigate(`/posts/${hot.id}`)} // HOT 게시글도 클릭 시 상세 페이지로 이동
+                  onClick={() => navigate(`/posts/${hot.id}`)}
                   style={{ padding: '10px', borderRadius: '5px', cursor: 'pointer', backgroundColor: '#fff', border: '1px solid #eee' }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fff'}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f0f0f0')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
                 >
                   <div style={{ fontSize: '12px', color: '#e74c3c', fontWeight: 'bold' }}>{index + 1}. {hot.title}</div>
-                  <div style={{ fontSize: '11px', color: '#888', marginTop: '4px' }}>조회수 {hot.view_count} · 좋아요 {hot.likes}</div>
-                </div>
+                  <div style={{ fontSize: '11px', color: '#888', marginTop: '4px' }}>조회수 {hot.view_count} · 좋아요 {hot.likes_count}</div>                </div>
               ))}
             </div>
           </div>
@@ -154,92 +172,6 @@ export default function PostList() {
         </div>
 
       </div>
-
-      {/* 새 글 쓰기 모달 팝업 (글쓰기는 기존 요구사항대로 팝업 유지) */}
-      {isModalOpen && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: '#fff', width: '600px', maxHeight: '90vh', overflowY: 'auto',
-            padding: '30px', borderRadius: '12px', boxShadow: '0 5px 15px rgba(0,0,0,0.3)', position: 'relative'
-          }}>
-            <h2 style={{ margin: '0 0 20px 0', borderBottom: '2px solid #333', paddingBottom: '10px', fontSize: '20px' }}>
-              새 글 쓰기
-            </h2>
-
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>카테고리 선택</label>
-                <select 
-                  value={category} 
-                  onChange={(e) => setCategory(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
-                >
-                  <option value="Tunning Review">Tunning Review</option>
-                  <option value="Q&A">Q&A</option>
-                  <option value="Community posts">Community posts</option>
-                </select>
-              </div>
-
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>제목</label>
-                <input 
-                  type="text" 
-                  placeholder="제목을 입력해주세요(최대 50자)" 
-                  maxLength={50}
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>내용</label>
-                <textarea 
-                  placeholder="내용을 입력해주세요(최소 10자 이상)" 
-                  rows="6"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', resize: 'vertical', boxSizing: 'border-box' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px', fontSize: '14px' }}>사진 첨부 (최대 5장)</label>
-                <label style={{ display: 'inline-block', backgroundColor: '#eaeaea', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', color: '#555', marginBottom: '10px' }}>
-                  📁 이미지 업로드
-                  <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
-                </label>
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                  {images.map((imgSrc, index) => (
-                    <div key={index} style={{ width: '70px', height: '70px', borderRadius: '5px', overflow: 'hidden', border: '1px solid #ddd' }}>
-                      <img src={imgSrc} alt={`preview-${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button 
-                  type="button" 
-                  onClick={() => setIsModalOpen(false)}
-                  style={{ backgroundColor: '#bbb', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}
-                >
-                  취소
-                </button>
-                <button 
-                  type="submit" 
-                  style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}
-                >
-                  등록하기
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
     </div>
   );
