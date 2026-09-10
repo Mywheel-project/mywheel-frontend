@@ -289,27 +289,17 @@
   border: none;
   background: transparent;
   padding: 0;
-  cursor: pointer;
   color: inherit;
   font: inherit;
 }
 
-.wheelItem:hover .wheelName {
-  color: #d40000;
-}
-
-.wheelItem:focus-visible {
-  outline: 2px solid #d40000;
-  outline-offset: 4px;
-  border-radius: 8px;
-}
 
 .wheelImageWrap {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
+  width: auto;
+  height: 150px;
+  border-radius: 10%;
   overflow: hidden;
-  background-color: #cfcfcf;
+  background-color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
