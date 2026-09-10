@@ -11,7 +11,6 @@ const API_BASE_URL = 'http://localhost:8000';
 
 // Header 에서 로그인 성공 시 저장하는 것과 동일한 localStorage 키.
 // 로그인 상태면 합성 결과를 내 갤러리에 남기기 위해 유저 id를 함께 보낸다.
-const USER_STORAGE_KEY = 'mywheel_user';
 
 function getStoredUserId() {
   try {
