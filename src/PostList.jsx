@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // AuthContext/useAuth 대신 main 프로젝트의 로그인 방식을 그대로 사용.
@@ -17,16 +17,23 @@ function getStoredUserId() {
 export default function PostList() {
   const navigate = useNavigate();
   const [currentTab, setCurrentTab] = useState('All');
+  const POSTS_PER_PAGE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const userId = getStoredUserId();
   const isLoggedIn = !!userId;
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // 🔥 1. 백엔드 FastAPI로부터 실제 DB에 저장된 게시글 목록 가져오기
-  const fetchPosts = async () => {
+  const fetchPosts = async (keyword = '') => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/api/posts');
+      const url = keyword
+        ? `http://localhost:8000/api/posts?search=${encodeURIComponent(keyword)}`
+        : 'http://localhost:8000/api/posts';
+      const response = await fetch(url);
+
       if (response.ok) {
         const data = await response.json();
         setPosts(data);
@@ -44,6 +51,24 @@ export default function PostList() {
     fetchPosts();
     fetchHotPosts();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [currentTab]);
+
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      fetchPosts(searchTerm);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
     const [hotPosts, setHotPosts] = useState([]);
 
   const fetchHotPosts = async () => {
@@ -65,6 +90,12 @@ export default function PostList() {
   : currentTab === 'My Posts'
     ? (isLoggedIn ? posts.filter((post) => post.user_id === userId) : [])
     : posts.filter((post) => post.title && post.title.startsWith(`[${currentTab}]`));
+
+  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / POSTS_PER_PAGE));
+  const pagedPosts = filteredPosts.slice(
+    (currentPage - 1) * POSTS_PER_PAGE,
+    currentPage * POSTS_PER_PAGE
+);
 
   return (
     <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, paddingBottom: '40px' }}>
@@ -100,6 +131,8 @@ export default function PostList() {
             <input 
               type="text" 
               placeholder="SEARCH" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               style={{ border: 'none', backgroundColor: 'transparent', outline: 'none', padding: '5px', width: '100%', fontSize: '14px' }}
             />
           </div>
@@ -115,7 +148,7 @@ export default function PostList() {
             ) : currentTab === 'My Posts' && !isLoggedIn ? (
               <p style={{ textAlign: 'center', color: '#888', padding: '40px 0' }}>로그인 후 내가 쓴 글을 확인할 수 있습니다.</p>
             ) : filteredPosts.length > 0 ? (
-              filteredPosts.map((post) => (
+              pagedPosts.map((post) => (
                 <div 
                   key={post.id} 
                   onClick={() => navigate(`/posts/${post.id}`)} // 클릭 시 상세 페이지로 이동
@@ -137,6 +170,28 @@ export default function PostList() {
               ))
             ) : (
               <p style={{ textAlign: 'center', color: '#888', padding: '40px 0' }}>등록된 게시글이 없습니다. 첫 글을 작성해 보세요!</p>
+            )}
+
+            {totalPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    style={{
+                      border: 'none',
+                      backgroundColor: 'transparent',
+                      cursor: 'pointer',
+                      color: page === currentPage ? '#e74c3c' : '#999',
+                      fontWeight: page === currentPage ? 'bold' : 'normal',
+                      fontSize: page === currentPage ? '18px' : '14px',
+                      padding: '4px 8px',
+                    }}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
             )}
 
             {/* 🔥 2. 글쓰기 버튼 클릭 시 PostCreate 페이지(/community/create)로 이동 */}
