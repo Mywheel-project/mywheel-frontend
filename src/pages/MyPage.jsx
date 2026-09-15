@@ -1,17 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import EditProfileModal from '../components/EditProfileModal';
-import styles from './MyPage.module.css';
 import carImg from '../assets/homepage/car_before.png';
-import carAfterImg from '../assets/homepage/car_after.png';
 import { WHEEL_ASSETS } from '../data/wheels';
 
 import EditVehicleModal from '../components/EditVehicleModal';
-import WheelDetailModal from '../components/WheelDetailModal';
 import styles from './MyPage.module.css';
-
-import carImg from '../assets/homepage/car_before.png';
-import wheelImg from '../assets/homepage/wheel_main.png';
 
 const DEFAULT_WHEEL_DETAIL = {
   specs: [
