@@ -2,24 +2,11 @@ import { useState, useEffect } from 'react';
 import styles from './WheelTuning.module.css';
 import toolsIconImg from '../../assets/custompage/tool.png';
 import { WHEEL_ASSETS, BRANDS } from '../../data/wheels';
-
+import { getStoredUserId, getCustomAuthHeaders, fetchCustomLimits } from '../../utils/customLimit';
 
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const USER_STORAGE_KEY = 'mywheel_user';
 const API_BASE_URL = 'http://localhost:8000';
-
-// Header 에서 로그인 성공 시 저장하는 것과 동일한 localStorage 키.
-// 로그인 상태면 합성 결과를 내 갤러리에 남기기 위해 유저 id를 함께 보낸다.
-
-function getStoredUserId() {
-  try {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    return saved ? JSON.parse(saved)?.id ?? null : null;
-  } catch {
-    return null;
-  }
-}
 
 function WheelTuning() {
   // 1. 차량 사진 관련 State
@@ -35,6 +22,13 @@ function WheelTuning() {
   const [wheelImagePreview, setWheelImagePreview] = useState(null);
   const [isDraggingWheel, setIsDraggingWheel] = useState(false);
 
+  // 주간 5회 사용 제한 State
+  const [weeklyLimit, setWeeklyLimit] = useState({
+    remaining: 5,
+    max: 5,
+    used: 0,
+  });
+
   const userId = getStoredUserId();
 
   // 즐겨찾기 상태 관리 (localStorage + 서버 동기화)
@@ -49,6 +43,15 @@ function WheelTuning() {
     }
     return WHEEL_ASSETS.filter((w) => w.isFavorite).map((w) => w.id);
   });
+
+  // 주간 잔여 횟수 서버에서 조회
+  useEffect(() => {
+    fetchCustomLimits().then((data) => {
+      if (data?.tuning) {
+        setWeeklyLimit(data.tuning);
+      }
+    });
+  }, [userId]);
 
   // 로그인된 경우 서버 DB의 즐겨찾기 목록을 조회해 동기화
   useEffect(() => {
@@ -190,6 +193,11 @@ function WheelTuning() {
 
   // AI 휠 합성 요청 함수
   const handleSynthesize = async () => {
+    if (weeklyLimit.remaining <= 0) {
+      alert('이번 주 휠 튜닝 이용 한도(5회)를 모두 소진하셨습니다. 매주 월요일 00:00에 다시 충전됩니다.');
+      return;
+    }
+
     if (!carFile) {
       alert('튜닝할 자동차 사진을 업로드해 주세요!');
       return;
@@ -221,24 +229,42 @@ function WheelTuning() {
         }
       }
 
-      const userId = getStoredUserId();
+      const headers = getCustomAuthHeaders();
 
       const response = await fetch(
         'http://localhost:8000/api/v1/custom/synthesize',
         {
           method: 'POST',
-          headers: userId ? { 'X-User-Id': String(userId) } : undefined,
+          headers: headers,
           body: formData,
         }
       );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        if (response.status === 429) {
+          setWeeklyLimit((prev) => ({ ...prev, remaining: 0, used: prev.max }));
+        }
         throw new Error(errorData.detail || '합성 요청에 실패했습니다.');
       }
 
       const data = await response.json();
       setResultImageUrl(data.result_image_url);
+
+      // 잔여 횟수 즉시 갱신
+      if (data.remaining !== undefined) {
+        setWeeklyLimit((prev) => ({
+          ...prev,
+          remaining: data.remaining,
+          used: prev.max - data.remaining,
+        }));
+      } else {
+        setWeeklyLimit((prev) => ({
+          ...prev,
+          remaining: Math.max(0, prev.remaining - 1),
+          used: prev.used + 1,
+        }));
+      }
     } catch (error) {
       console.error('합성 오류:', error);
       alert(`오류 발생: ${error.message}`);
@@ -292,11 +318,8 @@ function WheelTuning() {
       return w.brand === selectedBrand;
     })
     .sort((a, b) => {
-      // 1. 브랜드 이름 기준 오름차순 (BBS -> ENKEI -> HRE ... 브랜드별로 묶임)
       const brandCompare = a.brand.localeCompare(b.brand);
       if (brandCompare !== 0) return brandCompare;
-
-      // 2. 같은 브랜드 안에서는 모델명(또는 id) 순서로 정렬
       return a.modelName.localeCompare(b.modelName);
     });
 
@@ -337,7 +360,15 @@ function WheelTuning() {
         /* CASE B: 휠 합성 작업 화면 */
         <>
           <div className={styles.headerText}>
-            <h2>내 차에 어울리는 완벽한 휠을 찾아보세요</h2>
+            <div className={styles.headerTitleRow}>
+              <h2>내 차에 어울리는 완벽한 휠을 찾아보세요</h2>
+              <span
+                className={`${styles.limitBadge} ${weeklyLimit.remaining === 0 ? styles.limitExhausted : ''}`}
+                title="매주 월요일 00:00에 5회 충전됩니다"
+              >
+                이번 주 잔여: <strong>{weeklyLimit.remaining}</strong> / {weeklyLimit.max}회
+              </span>
+            </div>
             <p>차량 사진을 올리고 원하는 휠을 선택하면, AI가 원본 각도와 조명에 맞춰 자연스럽게 합성해 드립니다</p>
           </div>
 
@@ -518,17 +549,22 @@ function WheelTuning() {
             <button
               className={styles.submitBtn}
               onClick={handleSynthesize}
-              disabled={isLoading || !carFile || (!selectedWheelId && !wheelFile)}
+              disabled={isLoading || !carFile || (!selectedWheelId && !wheelFile) || weeklyLimit.remaining <= 0}
             >
               {isLoading ? (
                 <span className={styles.loadingTextWrapper}>
                   <span className={styles.spinner} />
                   휠 합성 진행 중... (약 10~15초 소요)
                 </span>
+              ) : weeklyLimit.remaining <= 0 ? (
+                '이번 주 한도 소진 (0/5회 - 다음 주 월요일 충전)'
               ) : (
-                '휠 튜닝 결과보기'
+                `휠 튜닝 결과보기 (${weeklyLimit.remaining}회 남음)`
               )}
             </button>
+            <p className={styles.limitNotice}>
+              휠 튜닝 기능은 매주 월요일 00:00에 5회씩 자동 충전됩니다 (잔여: {weeklyLimit.remaining}회)
+            </p>
           </div>
         </>
       )}
