@@ -19,7 +19,7 @@
 .headerText h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #000;
+  color: #000000;
   margin-bottom: 1rem;
   letter-spacing: -0.02em;
 }
@@ -84,8 +84,8 @@
 .uploadCard {
   position: relative;
   width: 100%;
-  height: 320px;          /* 기준 높이 (오른쪽 휠 선택 그리드와 균형 맞춤) */
-  max-height: 380px;      /* 최대 높이 제한선 */
+  height: 320px;
+  max-height: 380px;
   background-color: #F7F7F8;
   border: 2.5px dashed #D0D0D5;
   border-radius: 24px;
@@ -258,7 +258,7 @@
 }
 
 /* ===================================================
-   3. 오른쪽: 휠 프리셋 그리드 & 직접 업로드
+   3. 오른쪽: 휠 선택 그룹 & 모달 오픈 카드 & 직접 업로드
 =================================================== */
 .wheelSelectionGroup {
   display: flex;
@@ -267,121 +267,138 @@
   width: 100%;
 }
 
-.wheelGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.9rem;
+/* 휠 에셋 모달 오픈 카드 & 현재 선택 상태 요약 */
+.modalOpenCard {
+  width: 100%;
+  min-height: 236px;
   background-color: #F7F7F8;
-  padding: 1.2rem;
+  border: 2.5px dashed #D0D0D5;
   border-radius: 20px;
-  border: 2px solid #E5E5E8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  transition: all 0.25s ease;
+}
+
+.modalOpenCard:hover {
+  background-color: #EFEFEF;
+  border-color: #111111;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.modalOpenCard.cardActive {
+  background-color: #FFF8F8;
+  border: 2px solid #D40000;
+}
+
+.modalOpenPlaceholder {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.catalogIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: #EAEAEA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #222222;
+  transition: transform 0.2s ease;
+}
+
+.modalOpenCard:hover .catalogIcon {
+  background-color: #111111;
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+.modalOpenPrimary {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #111111;
+  margin: 0 0 0.3rem 0;
+}
+
+.modalOpenSub {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #777777;
+  margin: 0;
+}
+
+.selectedWheelSummary {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  width: 100%;
+  position: relative;
+}
+
+.selectedWheelThumb {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  border: 1.5px solid #E5E5E8;
+  padding: 6px;
   box-sizing: border-box;
 }
 
-.wheelItem {
-  position: relative;
-  background: #ffffff;
-  border: 2px solid #E0E0E0;
-  border-radius: 16px;
-  padding: 0.6rem 0.3rem;
+.selectedWheelInfo {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.selectedBrandBadge {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #D40000;
+  letter-spacing: 0.04em;
+}
+
+.selectedModelName {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #111111;
+  margin: 0;
+}
+
+.reselectHint {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #888888;
+}
+
+.clearWheelBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background-color: #EAEAEA;
+  color: #444444;
   cursor: pointer;
-  outline: none;
+  font-size: 0.9rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
 }
 
-.wheelItem:hover {
-  transform: translateY(-3px);
-  border-color: #111111;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.wheelItem.selectedWheel {
-  border-color: #D40000;
-  background-color: #FFF5F5;
-  box-shadow: 0 0 0 2px #D40000;
-}
-
-.wheelDisc {
-  position: relative;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #555 0%, #222 70%, #111 100%);
-  border: 2.5px solid #888888;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.wheelSpokeCross {
-  position: absolute;
-  width: 70%;
-  height: 2px;
-  background-color: #aaa;
-  box-shadow: 0 0 0 1px #333;
-}
-
-.wheelSpokeCross::after {
-  content: '';
-  position: absolute;
-  top: -15px;
-  left: 14px;
-  width: 2px;
-  height: 32px;
-  background-color: #aaa;
-  box-shadow: 0 0 0 1px #333;
-}
-
-.wheelCenterCap {
-  position: relative;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #D40000;
-  border: 1.5px solid #fff;
-  z-index: 2;
-}
-
-.wheelItemName {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #333333;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-}
-
-.starBadge {
-  position: absolute;
-  top: 4px;
-  left: 6px;
-  color: #f39c12;
-  font-size: 0.75rem;
-}
-
-.checkBadge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+.clearWheelBtn:hover {
   background-color: #D40000;
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(212, 0, 0, 0.4);
+  color: #FFFFFF;
+  transform: scale(1.1);
 }
 
 /* 휠 직접 업로드 카드 */
@@ -495,6 +512,288 @@
   background-color: #D40000;
   color: #ffffff;
   transform: scale(1.1);
+}
+
+/* ===================================================
+   휠 에셋 모달 레이아웃
+=================================================== */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.25s ease;
+}
+
+.modalContainer {
+  width: 90%;
+  max-width: 860px;
+  max-height: 85vh;
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  animation: modalScaleUp 0.25s ease;
+}
+
+@keyframes modalScaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #EEEEEE;
+}
+
+.modalHeader h3 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #111111;
+  margin: 0 0 0.3rem 0;
+}
+
+.modalHeader p {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #666666;
+  margin: 0;
+}
+
+.modalCloseBtn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  color: #777777;
+  transition: color 0.2s ease;
+}
+
+.modalCloseBtn:hover {
+  color: #111111;
+}
+
+/* 브랜드 탭 필터 */
+.brandTabsWrapper {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem 2rem;
+  overflow-x: auto;
+  border-bottom: 1px solid #F0F0F0;
+  background-color: #FAFAFA;
+}
+
+.brandTab {
+  background: none;
+  border: 1px solid #E0E0E0;
+  padding: 0.45rem 1.1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #555555;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.brandTab:hover {
+  border-color: #111111;
+  color: #111111;
+}
+
+.activeBrandTab {
+  background-color: #111111;
+  border-color: #111111;
+  color: #FFFFFF;
+}
+
+/* 모달 그리드 */
+.modalWheelGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  overflow-y: auto;
+  max-height: 52vh;
+}
+
+.modalWheelCard {
+  position: relative;
+  border: 2px solid #EAEAEA;
+  border-radius: 18px;
+  padding: 1rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #FFFFFF;
+}
+
+.modalWheelCard:hover {
+  border-color: #111111;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.selectedModalWheel {
+  border-color: #D40000;
+  background-color: #FFF5F5;
+  box-shadow: 0 0 0 2px #D40000;
+}
+
+.wheelImageFrame {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.8rem;
+}
+
+.wheelAssetImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 이미지 대체용 벡터 디스크 */
+.wheelDiscFallback {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #555 0%, #222 70%, #111 100%);
+  border: 2.5px solid #888888;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.wheelSpokeCross {
+  position: absolute;
+  width: 70%;
+  height: 2px;
+  background-color: #aaa;
+  box-shadow: 0 0 0 1px #333;
+}
+
+.wheelSpokeCross::after {
+  content: '';
+  position: absolute;
+  top: -24px;
+  left: 23px;
+  width: 2px;
+  height: 50px;
+  background-color: #aaa;
+  box-shadow: 0 0 0 1px #333;
+}
+
+.wheelCenterCap {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #D40000;
+  border: 1.5px solid #fff;
+  z-index: 2;
+}
+
+.wheelMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.wheelBrandTag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #888888;
+  letter-spacing: 0.03em;
+}
+
+.wheelModelTitle {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #111111;
+  line-height: 1.3;
+}
+
+/* 즐겨찾기 별 버튼 */
+.starBtn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: #D5D5D8; /* 비활성 시 연한 회색 */
+  cursor: pointer;
+  padding: 4px;
+  z-index: 5;
+  transition: all 0.2s ease;
+}
+
+.starBtn:hover {
+  transform: scale(1.2);
+  color: #f39c12;
+}
+
+.starBtn.starActive {
+  color: #f39c12; /* 즐겨찾기 선택 시 노란색 유지 */
+  text-shadow: 0 1px 4px rgba(243, 156, 18, 0.35);
+}
+
+.checkBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #D40000;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(212, 0, 0, 0.4);
+}
+
+.modalFooter {
+  padding: 1.2rem 2rem;
+  border-top: 1px solid #EEEEEE;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modalConfirmBtn {
+  background-color: #111111;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.8rem 2.2rem;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.modalConfirmBtn:hover {
+  background-color: #333333;
 }
 
 /* ===================================================
