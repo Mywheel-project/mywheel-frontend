@@ -5,6 +5,7 @@ import carImg from '../assets/homepage/car_before.png';
 import { WHEEL_ASSETS } from '../data/wheels';
 
 import EditVehicleModal from '../components/EditVehicleModal';
+import ImageLightbox from '../components/ImageLightbox';
 import styles from './MyPage.module.css';
 
 const DEFAULT_WHEEL_DETAIL = {
@@ -67,6 +68,8 @@ function MyPage() {
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
   // /custom/tuning 에서 만든 내 합성 사진 목록 (최근 생성 순).
   const [galleryImages, setGalleryImages] = useState([]);
+  // 갤러리 사진 클릭 시 원본 크기로 보여줄 이미지 URL.
+  const [lightboxImageUrl, setLightboxImageUrl] = useState(null);
   // 회원 정보 수정(PUT /users/me) 요청 시 "나"를 식별하는 데 필요하다.
   const userId = getStoredUserId();
 
@@ -264,9 +267,15 @@ function MyPage() {
                 <>
                   <div className={styles.galleryGrid}>
                     {visibleGalleryImages.map((image) => (
-                      <div key={image.id} className={styles.galleryItem}>
+                      <button
+                        key={image.id}
+                        type="button"
+                        className={styles.galleryItem}
+                        onClick={() => setLightboxImageUrl(image.image_url)}
+                        aria-label="원본 크기로 보기"
+                      >
                         <img src={image.image_url} alt="내가 생성한 튜닝 사진" />
-                      </div>
+                      </button>
                     ))}
                   </div>
                   {galleryPageCount > 1 && (
@@ -349,6 +358,11 @@ function MyPage() {
         userId={userId}
         vehicle={vehicle}
         onConfirm={(updatedVehicle) => setVehicle(updatedVehicle)}
+      />
+      <ImageLightbox
+        isOpen={!!lightboxImageUrl}
+        imageUrl={lightboxImageUrl}
+        onClose={() => setLightboxImageUrl(null)}
       />
     </div>
   );
