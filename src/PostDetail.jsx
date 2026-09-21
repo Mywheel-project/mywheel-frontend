@@ -215,6 +215,19 @@ export default function PostDetail() {
           {post.content}
         </div>
 
+        {post.images && post.images.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '30px' }}>
+            {post.images.map((imgUrl, index) => (
+              <img
+                key={index}
+                src={imgUrl}
+                alt={`post-image-${index}`}
+                style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '8px', border: '1px solid #eee', objectFit: 'contain' }}
+              />
+            ))}
+          </div>
+        )}
+
                 <div style={{ marginBottom: '25px', display: 'flex', justifyContent: 'flex-start' }}>
           <button 
             onClick={handleLikeClick}

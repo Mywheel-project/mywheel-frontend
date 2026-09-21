@@ -156,12 +156,22 @@ export default function PostList() {
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fafafa')}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#fff')}
                 >
-                  <div>
-                    <h3 style={{ margin: '8px 0', fontSize: '16px', color: '#222' }}>{post.title}</h3>
-                    <span style={{ fontSize: '13px', color: '#888' }}>
-                      작성자: <strong style={{ color: '#555' }}>{post.author || '익명'}</strong> · {post.created_at ? new Date(post.created_at).toLocaleDateString() : ''}
-                    </span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    {post.images && post.images.length > 0 && (
+                      <img
+                        src={post.images[0]}
+                        alt="thumbnail"
+                        style={{ width: '70px', height: '70px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #eee', flexShrink: 0 }}
+                      />
+                    )}
+                    <div>
+                      <h3 style={{ margin: '8px 0', fontSize: '16px', color: '#222' }}>{post.title}</h3>
+                      <span style={{ fontSize: '13px', color: '#888' }}>
+                        작성자: <strong style={{ color: '#555' }}>{post.author || '익명'}</strong> · {post.created_at ? new Date(post.created_at).toLocaleDateString() : ''}
+                      </span>
+                    </div>
                   </div>
+                  
                   <div style={{ display: 'flex', gap: '15px', fontSize: '13px', color: '#777' }}>
                     <span>👁️ {post.view_count ?? 0}</span>
                     <span>❤️ {post.likes_count ?? 0}</span>
