@@ -104,7 +104,11 @@ function Header() {
         onOpenSignup={openSignup}
         onLoginSuccess={handleLoginSuccess}
       />
-      <SignupModal isOpen={authModal === 'signup'} onClose={closeAuth} />
+      <SignupModal
+        isOpen={authModal === 'signup'}
+        onClose={closeAuth}
+        onSignupSuccess={handleLoginSuccess}
+      />
     </>
   );
 }
