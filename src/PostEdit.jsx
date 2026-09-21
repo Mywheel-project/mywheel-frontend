@@ -24,6 +24,9 @@ function PostEdit() {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingImages, setExistingImages] = useState([]);
+  const [newImageFiles, setNewImageFiles] = useState([]);
+  const [newImagePreviews, setNewImagePreviews] = useState([]);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -40,6 +43,7 @@ function PostEdit() {
             setTitle(post.title);
           }
           setContent(post.content);
+          setExistingImages(post.images || []);
         } else {
           alert('게시글을 불러올 수 없습니다.');
           navigate('/community');
@@ -55,6 +59,22 @@ function PostEdit() {
     fetchPost();
   }, [id, navigate]);
 
+    const handleNewImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setNewImageFiles((prev) => [...prev, ...files]);
+    setNewImagePreviews((prev) => [...prev, ...previews]);
+  };
+
+  const handleRemoveExistingImage = (url) => {
+    setExistingImages((prev) => prev.filter((imgUrl) => imgUrl !== url));
+  };
+
+  const handleRemoveNewImage = (index) => {
+    setNewImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setNewImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -66,16 +86,22 @@ function PostEdit() {
     setIsSubmitting(true);
 
     try {
+      const formData = new FormData();
+      formData.append('title', `[${category}] ${title}`);
+      formData.append('content', content);
+      existingImages.forEach((url) => {
+        formData.append('existing_images', url);
+      });
+      newImageFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+
       const response = await fetch(`http://localhost:8000/api/posts/${id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
           'X-User-Id': String(userId),
         },
-        body: JSON.stringify({
-          title: `[${category}] ${title}`,
-          content: content,
-        }),
+        body: formData,
       });
 
       if (response.ok) {
@@ -141,6 +167,48 @@ function PostEdit() {
               onChange={(e) => setContent(e.target.value)}
               style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px', resize: 'vertical', boxSizing: 'border-box' }}
             />
+          </div>
+                    <div style={{ marginBottom: '30px' }}>
+            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#444' }}>사진</label>
+
+            <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginBottom: '15px' }}>
+              {existingImages.map((imgUrl, index) => (
+                <div key={`existing-${index}`} style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #ddd' }}>
+                  <img src={imgUrl} alt={`existing-${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveExistingImage(imgUrl)}
+                    style={{ position: 'absolute', top: '2px', right: '2px', backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: '22px', height: '22px', cursor: 'pointer', fontSize: '12px', lineHeight: '1' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+
+              {newImagePreviews.map((imgSrc, index) => (
+                <div key={`new-${index}`} style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #ddd' }}>
+                  <img src={imgSrc} alt={`new-${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveNewImage(index)}
+                    style={{ position: 'absolute', top: '2px', right: '2px', backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: '22px', height: '22px', cursor: 'pointer', fontSize: '12px', lineHeight: '1' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <label style={{ display: 'inline-block', backgroundColor: '#eaeaea', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', color: '#555' }}>
+              📁 이미지 추가
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleNewImageChange}
+                style={{ display: 'none' }}
+              />
+            </label>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px' }}>

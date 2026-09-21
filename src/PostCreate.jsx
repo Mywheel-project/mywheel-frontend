@@ -23,6 +23,7 @@ function PostCreate() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState([]);
+  const [imageFiles, setImageFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 이미지 선택 시 미리보기
@@ -30,6 +31,7 @@ function PostCreate() {
     const files = Array.from(e.target.files);
     const newImageUrls = files.map((file) => URL.createObjectURL(file));
     setImages((prev) => [...prev, ...newImageUrls]);
+    setImageFiles((prev) => [...prev, ...files]);
   };
 
   // 백엔드 DB로 게시글 저장
@@ -49,17 +51,20 @@ function PostCreate() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('http://localhost:8000/api/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-User-Id': String(userId),
-        },
-        body: JSON.stringify({
-          title: `[${category}] ${title}`,
-          content: content,
-        }),
-      });
+              const formData = new FormData();
+        formData.append('title', `[${category}] ${title}`);
+        formData.append('content', content);
+        imageFiles.forEach((file) => {
+          formData.append('images', file);
+        });
+
+        const response = await fetch('http://localhost:8000/api/posts', {
+          method: 'POST',
+          headers: {
+            'X-User-Id': String(userId),
+          },
+          body: formData,
+        });
 
       if (response.ok) {
         alert('게시글이 성공적으로 등록되었습니다!');
