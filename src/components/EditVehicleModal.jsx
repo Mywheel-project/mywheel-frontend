@@ -1,7 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import styles from './EditVehicleModal.module.css';
 
-// FastAPI 백엔드 주소. 배포 시에는 .env(VITE_API_BASE_URL)로 분리하는 게 좋다.
 const API_BASE_URL = 'http://localhost:8000';
 
 const EMPTY_VEHICLE = {
@@ -133,7 +132,7 @@ function EditVehicleModal({ isOpen, onClose, userId, vehicle, onConfirm }) {
       >
         <header className={styles.header}>
           <h2 id={titleId} className={styles.title}>
-            {vehicle ? '차량 정보 수정' : '차량 추가'}
+            {vehicle ? '내 차량 정보 수정' : '내 차량 등록'}
           </h2>
           <button
             type="button"
@@ -141,7 +140,7 @@ function EditVehicleModal({ isOpen, onClose, userId, vehicle, onConfirm }) {
             onClick={onClose}
             aria-label="닫기"
           >
-            ×
+            ✕
           </button>
         </header>
 
@@ -151,12 +150,15 @@ function EditVehicleModal({ isOpen, onClose, userId, vehicle, onConfirm }) {
               {displayImage ? (
                 <img src={displayImage} alt="차량 사진 미리보기" />
               ) : (
-                <span className={styles.photoPlaceholder}>사진 없음</span>
+                <span className={styles.photoPlaceholder}>등록된 사진 없음</span>
               )}
             </div>
-            <button type="button" className={styles.addPhotoBtn} onClick={handleAddPhoto}>
-              차량 사진 추가
-            </button>
+            <div className={styles.photoActions}>
+              <button type="button" className={styles.addPhotoBtn} onClick={handleAddPhoto}>
+                차량 사진 등록 / 변경
+              </button>
+              <p className={styles.photoHint}>측면 또는 휠이 잘 보이는 차량 사진</p>
+            </div>
             <input
               ref={fileInputRef}
               type="file"
@@ -167,56 +169,62 @@ function EditVehicleModal({ isOpen, onClose, userId, vehicle, onConfirm }) {
           </div>
 
           <div className={styles.fields}>
-            <label className={styles.fieldRow}>
-              <span className={styles.label}>차종명 :</span>
+            <div className={styles.fieldRow}>
+              <label className={styles.label}>차종 및 모델명 *</label>
               <input
                 type="text"
                 className={styles.input}
                 value={form.name}
                 onChange={handleFieldChange('name')}
-                placeholder="예: 현대 그랜저 IG"
+                placeholder="예: 현대 아반떼 N, 제네시스 G80"
               />
-            </label>
-            <label className={styles.fieldRow}>
-              <span className={styles.label}>PCD :</span>
-              <input
-                type="text"
-                className={styles.input}
-                value={form.pcd}
-                onChange={handleFieldChange('pcd')}
-                placeholder="예: 114.3 mm"
-              />
-            </label>
-            <label className={styles.fieldRow}>
-              <span className={styles.label}>홀 수 :</span>
-              <input
-                type="text"
-                className={styles.input}
-                value={form.hole_count}
-                onChange={handleFieldChange('hole_count')}
-                placeholder="예: 5홀"
-              />
-            </label>
-            <label className={styles.fieldRow}>
-              <span className={styles.label}>허브 보어 :</span>
-              <input
-                type="text"
-                className={styles.input}
-                value={form.hub_bore}
-                onChange={handleFieldChange('hub_bore')}
-                placeholder="예: 67.1 mm"
-              />
-            </label>
-            <label className={styles.fieldRow}>
-              <span className={styles.label}>볼트 규격 :</span>
-              <input
-                type="text"
-                className={styles.input}
-                value={form.bolt_spec}
-                onChange={handleFieldChange('bolt_spec')}
-                placeholder="예: M12 x 1.5"
-              />
-            </label>
+            </div>
+
+            <div className={styles.fieldGrid}>
+              <div className={styles.fieldRow}>
+                <label className={styles.label}>PCD</label>
+                <input
+                  type="text"
+                  className={styles.input}
+                  value={form.pcd}
+                  onChange={handleFieldChange('pcd')}
+                  placeholder="예: 114.3"
+                />
+              </div>
+              <div className={styles.fieldRow}>
+                <label className={styles.label}>홀 수 (Hole)</label>
+                <input
+                  type="text"
+                  className={styles.input}
+                  value={form.hole_count}
+                  onChange={handleFieldChange('hole_count')}
+                  placeholder="예: 5"
+                />
+              </div>
+            </div>
+
+            <div className={styles.fieldGrid}>
+              <div className={styles.fieldRow}>
+                <label className={styles.label}>허브 보어 (Hub Bore)</label>
+                <input
+                  type="text"
+                  className={styles.input}
+                  value={form.hub_bore}
+                  onChange={handleFieldChange('hub_bore')}
+                  placeholder="예: 67.1 mm"
+                />
+              </div>
+              <div className={styles.fieldRow}>
+                <label className={styles.label}>볼트 / 너트 규격</label>
+                <input
+                  type="text"
+                  className={styles.input}
+                  value={form.bolt_spec}
+                  onChange={handleFieldChange('bolt_spec')}
+                  placeholder="예: M12 x 1.5"
+                />
+              </div>
+            </div>
           </div>
 
           {errorMessage && <p className={styles.errorText}>{errorMessage}</p>}
@@ -231,7 +239,7 @@ function EditVehicleModal({ isOpen, onClose, userId, vehicle, onConfirm }) {
               onClick={handleConfirm}
               disabled={isSubmitting}
             >
-              {isSubmitting ? '저장 중...' : '확인'}
+              {isSubmitting ? '저장 중...' : '저장하기'}
             </button>
           </div>
         </div>
