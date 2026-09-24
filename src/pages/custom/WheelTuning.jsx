@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import styles from './WheelTuning.module.css';
 import toolsIconImg from '../../assets/custompage/tool.png';
-import { WHEEL_ASSETS, BRANDS } from '../../data/wheels';
+import { WHEEL_ASSETS } from '../../data/wheels';
 import { getStoredUserId, fetchCustomLimits } from '../../utils/customLimit';
 import { useSynthesis } from '../../context/SynthesisContext';
+import WheelCatalogModal from '../../components/WheelCatalogModal';
 
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -17,7 +18,6 @@ function WheelTuning() {
 
   // 2. 휠 선택 및 모달 관련 State
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState('ALL');
   const [selectedWheelId, setSelectedWheelId] = useState(null);
   const [wheelFile, setWheelFile] = useState(null);
   const [wheelImagePreview, setWheelImagePreview] = useState(null);
@@ -298,19 +298,6 @@ function WheelTuning() {
 
   const selectedPreset = WHEEL_ASSETS.find((w) => w.id === selectedWheelId);
 
-  // 브랜드별 묶음 정렬 로직
-  const filteredWheels = WHEEL_ASSETS
-    .filter((w) => {
-      if (selectedBrand === 'ALL') return true;
-      if (selectedBrand === '즐겨찾기') return favoriteWheelIds.includes(w.id);
-      return w.brand === selectedBrand;
-    })
-    .sort((a, b) => {
-      const brandCompare = a.brand.localeCompare(b.brand);
-      if (brandCompare !== 0) return brandCompare;
-      return a.modelName.localeCompare(b.modelName);
-    });
-
   return (
     <div className={styles.tuningContainer}>
       {resultImageUrl ? (
@@ -558,99 +545,14 @@ function WheelTuning() {
       )}
 
       {/* ----------------- 휠 에셋 선택 모달 창 ----------------- */}
-      {isWheelModalOpen && (
-        <div className={styles.modalBackdrop} onClick={() => setIsWheelModalOpen(false)}>
-          <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <div>
-                <h3>휠 에셋 카탈로그</h3>
-                <p>장착하고 싶은 브랜드와 휠 모델을 선택하세요</p>
-              </div>
-              <button
-                type="button"
-                className={styles.modalCloseBtn}
-                onClick={() => setIsWheelModalOpen(false)}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* 브랜드 탭 필터 */}
-            <div className={styles.brandTabsWrapper}>
-              {BRANDS.map((brand) => (
-                <button
-                  key={brand}
-                  type="button"
-                  className={`${styles.brandTab} ${selectedBrand === brand ? styles.activeBrandTab : ''}`}
-                  onClick={() => setSelectedBrand(brand)}
-                >
-                  {brand}
-                </button>
-              ))}
-            </div>
-
-            {/* 모달 휠 그리드 */}
-            <div className={styles.modalWheelGrid}>
-              {filteredWheels.map((wheel) => (
-                <div
-                  key={wheel.id}
-                  className={`${styles.modalWheelCard} ${
-                    selectedWheelId === wheel.id ? styles.selectedModalWheel : ''
-                  }`}
-                  onClick={() => handleSelectPresetWheel(wheel.id)}
-                >
-                  {/* 즐겨찾기 별 토글 버튼 */}
-                  <button
-                    type="button"
-                    className={`${styles.starBtn} ${
-                      favoriteWheelIds.includes(wheel.id) ? styles.starActive : ''
-                    }`}
-                    onClick={(e) => handleToggleFavorite(e, wheel.id)}
-                    title={favoriteWheelIds.includes(wheel.id) ? '즐겨찾기 해제' : '즐겨찾기 추가'}
-                  >
-                    ★
-                  </button>
-
-                  <div className={styles.wheelImageFrame}>
-                    <img
-                      src={wheel.image}
-                      alt={wheel.modelName}
-                      className={styles.wheelAssetImg}
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        if (e.currentTarget.nextElementSibling) {
-                          e.currentTarget.nextElementSibling.style.display = 'flex';
-                        }
-                      }}
-                    />
-                    <div className={styles.wheelDiscFallback} style={{ display: 'none' }}>
-                      <div className={styles.wheelSpokeCross} />
-                      <div className={styles.wheelCenterCap} />
-                    </div>
-                  </div>
-
-                  <div className={styles.wheelMeta}>
-                    <span className={styles.wheelBrandTag}>{wheel.brand}</span>
-                    <strong className={styles.wheelModelTitle}>{wheel.modelName}</strong>
-                  </div>
-
-                  {selectedWheelId === wheel.id && <div className={styles.checkBadge}>✓</div>}
-                </div>
-              ))}
-            </div>
-
-            <div className={styles.modalFooter}>
-              <button
-                type="button"
-                className={styles.modalConfirmBtn}
-                onClick={() => setIsWheelModalOpen(false)}
-              >
-                선택 완료
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <WheelCatalogModal
+        isOpen={isWheelModalOpen}
+        onClose={() => setIsWheelModalOpen(false)}
+        selectedWheelId={selectedWheelId}
+        onSelectWheel={handleSelectPresetWheel}
+        favoriteWheelIds={favoriteWheelIds}
+        onToggleFavorite={handleToggleFavorite}
+      />
     </div>
   );
 }

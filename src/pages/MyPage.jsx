@@ -6,6 +6,7 @@ import { WHEEL_ASSETS } from '../data/wheels';
 
 import EditVehicleModal from '../components/EditVehicleModal';
 import ImageLightbox from '../components/ImageLightbox';
+import WheelCatalogModal from '../components/WheelCatalogModal';
 import styles from './MyPage.module.css';
 
 const DEFAULT_WHEEL_DETAIL = {
@@ -58,7 +59,7 @@ const DEFAULT_PROFILE = {
 
 function MyPage() {
   const [galleryPage, setGalleryPage] = useState(0);
-  const [wheelIndex, setWheelIndex] = useState(0);
+  const [wheelPage, setWheelPage] = useState(0);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [favoriteWheelIds, setFavoriteWheelIds] = useState([]);
   // 로그인하지 않았거나 아직 응답이 오기 전에는 기본값을 보여준다.
@@ -70,6 +71,7 @@ function MyPage() {
   const [galleryImages, setGalleryImages] = useState([]);
   // 갤러리 사진 클릭 시 원본 크기로 보여줄 이미지 URL.
   const [lightboxImageUrl, setLightboxImageUrl] = useState(null);
+  const [isWheelCatalogOpen, setIsWheelCatalogOpen] = useState(false);
   // 회원 정보 수정(PUT /users/me) 요청 시 "나"를 식별하는 데 필요하다.
   const userId = getStoredUserId();
 
@@ -122,7 +124,14 @@ function MyPage() {
       image: w.image,
     }));
 
-  const maxIndex = Math.max(0, favoriteWheels.length - VISIBLE_WHEELS);
+  const wheelPageCount = Math.max(1, Math.ceil(favoriteWheels.length / VISIBLE_WHEELS));
+
+  // 즐겨찾기 목록이 줄어들어 현재 페이지가 범위를 벗어날 경우 보정
+  useEffect(() => {
+    if (wheelPage >= wheelPageCount) {
+      setWheelPage(Math.max(0, wheelPageCount - 1));
+    }
+  }, [wheelPageCount, wheelPage]);
 
   // 마운트 시 /vehicles/me 를 호출해 내가 등록해둔 차량(사진/제원)을 받아온다.
   useEffect(() => {
@@ -153,20 +162,58 @@ function MyPage() {
   }, [userId]);
 
   const prevWheels = () => {
-    setWheelIndex((prev) => Math.max(0, prev - 1));
+    setWheelPage((prev) => Math.max(0, prev - 1));
   };
 
   const nextWheels = () => {
-    setWheelIndex((prev) => Math.min(maxIndex, prev + 1));
+    setWheelPage((prev) => Math.min(wheelPageCount - 1, prev + 1));
   };
 
-  const visibleWheels = favoriteWheels.slice(wheelIndex, wheelIndex + VISIBLE_WHEELS);
+  const visibleWheels = favoriteWheels.slice(
+    wheelPage * VISIBLE_WHEELS,
+    wheelPage * VISIBLE_WHEELS + VISIBLE_WHEELS
+  );
 
   const galleryPageCount = Math.ceil(galleryImages.length / GALLERY_IMAGES_PER_PAGE);
   const visibleGalleryImages = galleryImages.slice(
     galleryPage * GALLERY_IMAGES_PER_PAGE,
     galleryPage * GALLERY_IMAGES_PER_PAGE + GALLERY_IMAGES_PER_PAGE,
   );
+
+  // 휠 즐겨찾기 토글 핸들러 (모달 및 마이페이지 동기화)
+  const handleToggleFavorite = async (e, wheelId) => {
+    e.stopPropagation();
+
+    const nextIds = favoriteWheelIds.includes(wheelId)
+      ? favoriteWheelIds.filter((id) => id !== wheelId)
+      : [...favoriteWheelIds, wheelId];
+    setFavoriteWheelIds(nextIds);
+    localStorage.setItem('mywheel_favorites', JSON.stringify(nextIds));
+
+    if (userId) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/favorites/wheels/toggle`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            wheel_id: wheelId,
+          }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data && Array.isArray(data.favorite_wheel_ids)) {
+            setFavoriteWheelIds(data.favorite_wheel_ids);
+            localStorage.setItem('mywheel_favorites', JSON.stringify(data.favorite_wheel_ids));
+          }
+        }
+      } catch (err) {
+        console.error('즐겨찾기 서버 동기화 실패:', err);
+      }
+    }
+  };
 
   // EditProfileModal 이 PUT /users/me 로 DB 수정까지 마친 뒤, 최신 유저 정보를 넘겨준다.
   const handleConfirmProfile = (updatedUser) => {
@@ -300,14 +347,23 @@ function MyPage() {
 
           {/* 휠 즐겨찾기 */}
           <section className={`${styles.card} ${styles.favoritesCard}`}>
-            <h2 className={styles.cardTitle}>휠 즐겨찾기 ({favoriteWheels.length}개)</h2>
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>휠 즐겨찾기 ({favoriteWheels.length}개)</h2>
+              <button
+                type="button"
+                className={styles.redBtn}
+                onClick={() => setIsWheelCatalogOpen(true)}
+              >
+                휠 둘러보기 +
+              </button>
+            </div>
             {favoriteWheels.length > 0 ? (
               <div className={styles.carousel}>
                 <button
                   type="button"
                   className={styles.arrowBtn}
                   onClick={prevWheels}
-                  disabled={wheelIndex === 0}
+                  disabled={wheelPage === 0}
                   aria-label="이전 휠"
                 >
                   ◀
@@ -326,7 +382,7 @@ function MyPage() {
                   type="button"
                   className={styles.arrowBtn}
                   onClick={nextWheels}
-                  disabled={wheelIndex >= maxIndex}
+                  disabled={wheelPage >= wheelPageCount - 1}
                   aria-label="다음 휠"
                 >
                   ▶
@@ -335,9 +391,13 @@ function MyPage() {
             ) : (
               <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#888' }}>
                 <p style={{ margin: '0 0 1rem 0' }}>즐겨찾기한 휠이 없습니다.</p>
-                <Link to="/custom" className={styles.redBtn}>
+                <button
+                  type="button"
+                  className={styles.redBtn}
+                  onClick={() => setIsWheelCatalogOpen(true)}
+                >
                   휠 둘러보기
-                </Link>
+                </button>
               </div>
             )}
           </section>
@@ -363,6 +423,12 @@ function MyPage() {
         isOpen={!!lightboxImageUrl}
         imageUrl={lightboxImageUrl}
         onClose={() => setLightboxImageUrl(null)}
+      />
+      <WheelCatalogModal
+        isOpen={isWheelCatalogOpen}
+        onClose={() => setIsWheelCatalogOpen(false)}
+        favoriteWheelIds={favoriteWheelIds}
+        onToggleFavorite={handleToggleFavorite}
       />
     </div>
   );
