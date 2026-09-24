@@ -1,15 +1,21 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import styles from './MyCarSpecs.module.css';
-import { getCustomAuthHeaders, fetchCustomLimits } from '../../utils/customLimit';
+import { fetchCustomLimits } from '../../utils/customLimit';
+import { useSynthesis } from '../../context/SynthesisContext';
 
 function MyCarSpecs() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentQuery, setCurrentQuery] = useState('');
-  const [searchResult, setSearchResult] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // 전역 Context 연동 (페이지 이동 시에도 분석 상태 및 결과 보존)
+  const {
+    isRecommending: loading,
+    recommendResult: searchResult,
+    recommendQuery: currentQuery,
+    startVehicleRecommend,
+  } = useSynthesis();
 
   // 주간 5회 사용 제한 State
   const [weeklyLimit, setWeeklyLimit] = useState({
@@ -40,55 +46,31 @@ function MyCarSpecs() {
       return;
     }
 
-    setLoading(true);
     setError(null);
-    setCurrentQuery(query);
 
-    try {
-      const headers = {
-        'Content-Type': 'application/json',
-        ...getCustomAuthHeaders(),
-      };
-
-      const response = await fetch('http://localhost:8000/api/v1/recommend/vehicle', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          vehicle_model: query,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        if (response.status === 429) {
+    await startVehicleRecommend(query, {
+      onSuccess: (data) => {
+        if (data.remaining !== undefined) {
+          setWeeklyLimit((prev) => ({
+            ...prev,
+            remaining: data.remaining,
+            used: prev.max - data.remaining,
+          }));
+        } else {
+          setWeeklyLimit((prev) => ({
+            ...prev,
+            remaining: Math.max(0, prev.remaining - 1),
+            used: prev.used + 1,
+          }));
+        }
+      },
+      onError: (err) => {
+        if (err.message && err.message.includes('한도')) {
           setWeeklyLimit((prev) => ({ ...prev, remaining: 0, used: prev.max }));
         }
-        throw new Error(errorData.detail || '제원 추천 분석에 실패했습니다.');
-      }
-
-      const data = await response.json();
-      setSearchResult(data.gemini_response);
-
-      // 잔여 횟수 즉시 갱신
-      if (data.remaining !== undefined) {
-        setWeeklyLimit((prev) => ({
-          ...prev,
-          remaining: data.remaining,
-          used: prev.max - data.remaining,
-        }));
-      } else {
-        setWeeklyLimit((prev) => ({
-          ...prev,
-          remaining: Math.max(0, prev.remaining - 1),
-          used: prev.used + 1,
-        }));
-      }
-    } catch (err) {
-      console.error('제원 추천 API 오류:', err);
-      setError(err.message || '오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
+        setError(err.message || '오류가 발생했습니다.');
+      },
+    });
   };
 
   return (
@@ -132,14 +114,14 @@ function MyCarSpecs() {
       {/* 로딩 안내 */}
       {loading && (
         <div className={styles.loadingBox}>
-          <p><strong>{currentQuery}</strong>의 휠/타이어 제원을 분석하고 있습니다...</p>
+          <p><strong>{currentQuery || searchTerm}</strong>의 휠/타이어 제원을 분석하고 있습니다...</p>
         </div>
       )}
 
       {/* 에러 안내 */}
       {error && !loading && (
         <div className={styles.errorBox}>
-          <p>⚠️ {error}</p>
+          <p>{error}</p>
         </div>
       )}
 

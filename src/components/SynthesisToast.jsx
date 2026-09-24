@@ -19,9 +19,10 @@ function SynthesisToast() {
 
   if (!toast || !toast.show) return null;
 
-  const handleGoToMyPage = () => {
+  const handleActionClick = () => {
+    const destination = toast.targetUrl || '/mypage';
     dismissToast();
-    navigate('/mypage');
+    navigate(destination);
   };
 
   return (
@@ -31,11 +32,12 @@ function SynthesisToast() {
           <div className={styles.toastTitleGroup}>
             {toast.type === 'pending' && <span className={styles.spinner} />}
             <h4 className={styles.toastTitle}>
-              {toast.type === 'pending'
-                ? '휠 튜닝 진행 중'
-                : toast.type === 'success'
-                ? '휠 튜닝 완료'
-                : '휠 튜닝 안내'}
+              {toast.title ||
+                (toast.type === 'pending'
+                  ? '진행 중'
+                  : toast.type === 'success'
+                  ? '완료'
+                  : '안내')}
             </h4>
           </div>
           <button
@@ -65,9 +67,9 @@ function SynthesisToast() {
           <button
             type="button"
             className={styles.actionBtn}
-            onClick={handleGoToMyPage}
+            onClick={handleActionClick}
           >
-            마이페이지 갤러리에서 보기
+            {toast.buttonText || '결과 보러가기'}
           </button>
         )}
       </div>
