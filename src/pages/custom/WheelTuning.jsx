@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import styles from './WheelTuning.module.css';
 import toolsIconImg from '../../assets/custompage/tool.png';
 import { WHEEL_ASSETS, BRANDS } from '../../data/wheels';
-import { getStoredUserId, getCustomAuthHeaders, fetchCustomLimits } from '../../utils/customLimit';
+import { getStoredUserId, fetchCustomLimits } from '../../utils/customLimit';
+import { useSynthesis } from '../../context/SynthesisContext';
 
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -70,9 +71,14 @@ function WheelTuning() {
       });
   }, [userId]);
 
-  // 3. API 요청 및 결과 State
-  const [isLoading, setIsLoading] = useState(false);
-  const [resultImageUrl, setResultImageUrl] = useState(null);
+  // 3. API 요청 및 전역 합성 Context 연동
+  const {
+    isSynthesizing: isLoading,
+    synthesisResult,
+    setSynthesisResult,
+    startSynthesis,
+  } = useSynthesis();
+  const resultImageUrl = synthesisResult?.result_image_url;
 
   // 모달 오픈 시 ESC 키 닫기 핸들러 등록
   useEffect(() => {
@@ -207,8 +213,6 @@ function WheelTuning() {
       return;
     }
 
-    setIsLoading(true);
-
     try {
       const formData = new FormData();
       formData.append('original_vehicle_image', carFile);
@@ -229,47 +233,31 @@ function WheelTuning() {
         }
       }
 
-      const headers = getCustomAuthHeaders();
-
-      const response = await fetch(
-        'http://localhost:8000/api/v1/custom/synthesize',
-        {
-          method: 'POST',
-          headers: headers,
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        if (response.status === 429) {
-          setWeeklyLimit((prev) => ({ ...prev, remaining: 0, used: prev.max }));
-        }
-        throw new Error(errorData.detail || '합성 요청에 실패했습니다.');
-      }
-
-      const data = await response.json();
-      setResultImageUrl(data.result_image_url);
-
-      // 잔여 횟수 즉시 갱신
-      if (data.remaining !== undefined) {
-        setWeeklyLimit((prev) => ({
-          ...prev,
-          remaining: data.remaining,
-          used: prev.max - data.remaining,
-        }));
-      } else {
-        setWeeklyLimit((prev) => ({
-          ...prev,
-          remaining: Math.max(0, prev.remaining - 1),
-          used: prev.used + 1,
-        }));
-      }
+      await startSynthesis(formData, {
+        onSuccess: (data) => {
+          if (data.remaining !== undefined) {
+            setWeeklyLimit((prev) => ({
+              ...prev,
+              remaining: data.remaining,
+              used: prev.max - data.remaining,
+            }));
+          } else {
+            setWeeklyLimit((prev) => ({
+              ...prev,
+              remaining: Math.max(0, prev.remaining - 1),
+              used: prev.used + 1,
+            }));
+          }
+        },
+        onError: (err) => {
+          if (err.message && err.message.includes('한도')) {
+            setWeeklyLimit((prev) => ({ ...prev, remaining: 0, used: prev.max }));
+          }
+        },
+      });
     } catch (error) {
-      console.error('합성 오류:', error);
+      console.error('합성 준비 오류:', error);
       alert(`오류 발생: ${error.message}`);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -347,7 +335,7 @@ function WheelTuning() {
               </svg>
               이미지 저장하기
             </button>
-            <button onClick={() => setResultImageUrl(null)} className={styles.resetBtn}>
+            <button onClick={() => setSynthesisResult(null)} className={styles.resetBtn}>
               <svg className={styles.btnIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                 <path d="M3 3v5h5" />

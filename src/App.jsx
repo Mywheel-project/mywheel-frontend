@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Header from './components/Header';
 import Home from './pages/Home';
+import SynthesisToast from './components/SynthesisToast';
+import { SynthesisProvider } from './context/SynthesisContext';
 // Header가 상단에 항상 상주해서 
 // LoginModal과 SignupModal을 렌더링하므로
 // 사용자가 상단 메뉴의 "로그인/회원가입" 버튼을 누르면 팝업으로 뜸
@@ -29,30 +31,33 @@ import PostEdit from './PostEdit'; // 게시글 수정 페이지 (오늘 추가)
 function App() {
   return (
     <Router>
-      <Header />
-      <Routes>
-        {/* 메인 홈 페이지 */}
-        <Route path="/" element={<Home />} />
+      <SynthesisProvider>
+        <Header />
+        <SynthesisToast />
+        <Routes>
+          {/* 메인 홈 페이지 */}
+          <Route path="/" element={<Home />} />
 
-        {/* CUSTOM 중첩 라우팅 (Sub-routing) */}
-        <Route path="/custom" element={<CustomPage />}>
-          {/* /custom 기본 접속 시 /custom/tuning 으로 리다이렉트 */}
-          <Route index element={<Navigate to="tuning" replace />} />
-          <Route path="tuning" element={<WheelTuning />} />
-          <Route path="my-specs" element={<MyCarSpecs />} />
-          <Route path="search" element={<WheelSpecsSearch />} />
-        </Route>
+          {/* CUSTOM 중첩 라우팅 (Sub-routing) */}
+          <Route path="/custom" element={<CustomPage />}>
+            {/* /custom 기본 접속 시 /custom/tuning 으로 리다이렉트 */}
+            <Route index element={<Navigate to="tuning" replace />} />
+            <Route path="tuning" element={<WheelTuning />} />
+            <Route path="my-specs" element={<MyCarSpecs />} />
+            <Route path="search" element={<WheelSpecsSearch />} />
+          </Route>
 
-        {/* 기타 주요 메뉴 라우팅 */}
-        <Route path="/map" element={<MapPage />} />
-        <Route path="/mypage" element={<MyPage />} />
+          {/* 기타 주요 메뉴 라우팅 */}
+          <Route path="/map" element={<MapPage />} />
+          <Route path="/mypage" element={<MyPage />} />
 
-        {/* 커뮤니티 라우팅 */}
-        <Route path="/community" element={<PostList />} />
-        <Route path="/community/create" element={<PostCreate />} />
-        <Route path="/posts/:id" element={<PostDetail />} />
-        <Route path="/community/edit/:id" element={<PostEdit />} /> {/* 게시글 수정 라우트 (오늘 추가) */}
-      </Routes>
+          {/* 커뮤니티 라우팅 */}
+          <Route path="/community" element={<PostList />} />
+          <Route path="/community/create" element={<PostCreate />} />
+          <Route path="/posts/:id" element={<PostDetail />} />
+          <Route path="/community/edit/:id" element={<PostEdit />} /> {/* 게시글 수정 라우트 (오늘 추가) */}
+        </Routes>
+      </SynthesisProvider>
     </Router>
   );
 }
