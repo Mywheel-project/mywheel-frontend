@@ -1,16 +1,22 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import styles from './WheelSearch.module.css';
-import { getCustomAuthHeaders, fetchCustomLimits } from '../../utils/customLimit';
+import { fetchCustomLimits } from '../../utils/customLimit';
+import { useSynthesis } from '../../context/SynthesisContext';
 
-function WheelSearch() {
+function WheelSpecsSearch() {
   const [wheelName, setWheelName] = useState('');
   const [carModel, setCarModel] = useState('');
-  const [searchResult, setSearchResult] = useState(null);
-  const [lastSearched, setLastSearched] = useState({ wheel: '', car: '' });
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // 전역 Context 연동 (페이지 이동 시에도 검색 상태 및 결과 보존)
+  const {
+    isSearchingWheel: loading,
+    wheelSearchResult: searchResult,
+    wheelSearchQuery: lastSearched,
+    startWheelSearch,
+  } = useSynthesis();
 
   // 주간 5회 사용 제한 State
   const [weeklyLimit, setWeeklyLimit] = useState({
@@ -43,56 +49,31 @@ function WheelSearch() {
       return;
     }
 
-    setLoading(true);
     setError(null);
-    setLastSearched({ wheel: trimmedWheel, car: trimmedCar });
 
-    try {
-      const headers = {
-        'Content-Type': 'application/json',
-        ...getCustomAuthHeaders(),
-      };
-
-      const response = await fetch('http://localhost:8000/api/v1/search/wheel', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          wheel_name: trimmedWheel,
-          ...(trimmedCar ? { vehicle_model: trimmedCar } : {}),
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        if (response.status === 429) {
+    await startWheelSearch(trimmedWheel, trimmedCar, {
+      onSuccess: (data) => {
+        if (data.remaining !== undefined) {
+          setWeeklyLimit((prev) => ({
+            ...prev,
+            remaining: data.remaining,
+            used: prev.max - data.remaining,
+          }));
+        } else {
+          setWeeklyLimit((prev) => ({
+            ...prev,
+            remaining: Math.max(0, prev.remaining - 1),
+            used: prev.used + 1,
+          }));
+        }
+      },
+      onError: (err) => {
+        if (err.message && err.message.includes('한도')) {
           setWeeklyLimit((prev) => ({ ...prev, remaining: 0, used: prev.max }));
         }
-        throw new Error(errorData.detail || '휠 제원 검색에 실패했습니다.');
-      }
-
-      const data = await response.json();
-      setSearchResult(data.gemini_response);
-
-      // 잔여 횟수 즉시 갱신
-      if (data.remaining !== undefined) {
-        setWeeklyLimit((prev) => ({
-          ...prev,
-          remaining: data.remaining,
-          used: prev.max - data.remaining,
-        }));
-      } else {
-        setWeeklyLimit((prev) => ({
-          ...prev,
-          remaining: Math.max(0, prev.remaining - 1),
-          used: prev.used + 1,
-        }));
-      }
-    } catch (err) {
-      console.error('휠 제원 검색 API 오류:', err);
-      setError(err.message || '오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
+        setError(err.message || '오류가 발생했습니다.');
+      },
+    });
   };
 
   return (
@@ -151,8 +132,8 @@ function WheelSearch() {
       {loading && (
         <div className={styles.loadingBox}>
           <p>
-            <strong>{lastSearched.wheel}</strong>
-            {lastSearched.car && <> (차량: <strong>{lastSearched.car}</strong>)</>}의 제원 및 호환성을 분석 중입니다...
+            <strong>{lastSearched?.wheel || wheelName}</strong>
+            {(lastSearched?.car || carModel) && <> (차량: <strong>{lastSearched?.car || carModel}</strong>)</>}의 제원 및 호환성을 분석 중입니다...
           </p>
         </div>
       )}
@@ -160,7 +141,7 @@ function WheelSearch() {
       {/* 에러 안내 */}
       {error && !loading && (
         <div className={styles.errorBox}>
-          <p>⚠️ {error}</p>
+          <p>{error}</p>
         </div>
       )}
 
@@ -168,7 +149,7 @@ function WheelSearch() {
       {searchResult && !loading && (
         <div className={styles.resultCard}>
           <h3 className={styles.resultTitle}>
-            [{lastSearched.wheel} {lastSearched.car ? `× ${lastSearched.car} 호환성 진단` : '제원 정보'}]
+            [{lastSearched?.wheel} {lastSearched?.car ? `× ${lastSearched?.car} 호환성 진단` : '제원 정보'}]
           </h3>
           <div className={styles.markdownContent}>
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -181,4 +162,4 @@ function WheelSearch() {
   );
 }
 
-export default WheelSearch;
+export default WheelSpecsSearch;
