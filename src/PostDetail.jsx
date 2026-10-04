@@ -177,7 +177,7 @@ export default function PostDetail() {
   const isOwner = isLoggedIn && post.user_id === userId;
 
   return (
-    <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh', fontFamily: 'sans-serif', padding: '40px 0' }}>
+    <div style={{ minHeight: '100vh', fontFamily: 'sans-serif', padding: '40px 0' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto', backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', border: '1px solid #ccc' }}>
         
         <h1 style={{ margin: '0 0 15px 0', fontSize: '22px', color: '#222', lineHeight: '1.4' }}>

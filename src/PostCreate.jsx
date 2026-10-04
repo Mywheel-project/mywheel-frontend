@@ -82,7 +82,7 @@ function PostCreate() {
   };
 
   return (
-    <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, padding: '20px 0' }}>
+    <div style={{ minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, padding: '20px 0' }}>
       <div style={{ maxWidth: '900px', margin: '40px auto', backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
         <h2 style={{ borderBottom: '2px solid #333', paddingBottom: '15px', marginBottom: '30px', color: '#333' }}>
           ✏️ 커뮤니티 글쓰기

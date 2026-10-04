@@ -98,7 +98,7 @@ export default function PostList() {
 );
 
   return (
-    <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, paddingBottom: '40px' }}>
+    <div style={{ minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, paddingBottom: '40px' }}>
       
       {/* 메인 컨텐츠 영역 */}
       <div style={{ maxWidth: '1100px', margin: '40px auto', backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
@@ -217,7 +217,7 @@ export default function PostList() {
 
           {/* 우측 HOT 게시물 영역 */}
           <div style={{ flex: 1, backgroundColor: '#fcfcfc', padding: '20px', borderRadius: '8px', border: '1px solid #e0e0e0', height: 'fit-content' }}>
-            <h4 style={{ margin: '0 0 15px 0', color: '#333', borderBottom: '2px solid #e74c3c', paddingBottom: '8px', fontSize: '15px' }}>🔥 HOT 게시물</h4>
+            <h4 style={{ margin: '0 0 15px 0', color: '#333', borderBottom: '2px solid #e74c3c', paddingBottom: '8px', fontSize: '15px' }}>HOT 게시물</h4>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {hotPosts.map((hot, index) => (
