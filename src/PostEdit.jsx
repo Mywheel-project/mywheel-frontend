@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import styles from './Community.module.css';
 
-// AuthContext/useAuth 대신 main 프로젝트의 로그인 방식을 그대로 사용.
-// Header.jsx, pages/MyPage.jsx와 동일하게 localStorage에 저장된 로그인 유저 정보를 직접 읽는다.
 const USER_STORAGE_KEY = 'mywheel_user';
 
 function getStoredUserId() {
@@ -18,34 +17,51 @@ function PostEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
   const userId = getStoredUserId();
+  const isLoggedIn = !!userId;
 
   const [category, setCategory] = useState('Tunning Review');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // 기존 DB에 저장되어 있던 이미지 URL 목록
   const [existingImages, setExistingImages] = useState([]);
+  
+  // 새로 추가할 이미지 파일 객체 및 미리보기 URL
   const [newImageFiles, setNewImageFiles] = useState([]);
   const [newImagePreviews, setNewImagePreviews] = useState([]);
+  
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // 1. 기존 게시글 정보 불러오기
   useEffect(() => {
     const fetchPost = async () => {
       try {
+        setLoading(true);
         const response = await fetch(`http://localhost:8000/api/posts/${id}`);
         if (response.ok) {
-          const post = await response.json();
+          const data = await response.json();
 
-          const match = post.title.match(/^\[(.+?)\]\s*(.*)$/);
+          // 작성자 본인 확인
+          if (String(data.user_id) !== String(userId)) {
+            alert('본인의 게시글만 수정할 수 있습니다.');
+            navigate(`/posts/${id}`);
+            return;
+          }
+
+          // 제목에서 [카테고리] 추출 및 파싱
+          const match = data.title?.match(/^\[(.*?)\]\s*(.*)$/);
           if (match) {
             setCategory(match[1]);
             setTitle(match[2]);
           } else {
-            setTitle(post.title);
+            setTitle(data.title || '');
           }
-          setContent(post.content);
-          setExistingImages(post.images || []);
+
+          setContent(data.content || '');
+          setExistingImages(data.images || []);
         } else {
-          alert('게시글을 불러올 수 없습니다.');
+          alert('게시글을 찾을 수 없습니다.');
           navigate('/community');
         }
       } catch (error) {
@@ -56,25 +72,36 @@ function PostEdit() {
       }
     };
 
-    fetchPost();
-  }, [id, navigate]);
+    if (!isLoggedIn) {
+      alert('로그인이 필요합니다.');
+      navigate('/community');
+      return;
+    }
 
-    const handleNewImageChange = (e) => {
+    fetchPost();
+  }, [id, userId, isLoggedIn, navigate]);
+
+  // 기존 이미지 삭제 처리
+  const handleRemoveExistingImage = (urlToRemove) => {
+    setExistingImages((prev) => prev.filter((url) => url !== urlToRemove));
+  };
+
+  // 새 이미지 파일 추가
+  const handleNewImageChange = (e) => {
     const files = Array.from(e.target.files);
     const previews = files.map((file) => URL.createObjectURL(file));
+
     setNewImageFiles((prev) => [...prev, ...files]);
     setNewImagePreviews((prev) => [...prev, ...previews]);
   };
 
-  const handleRemoveExistingImage = (url) => {
-    setExistingImages((prev) => prev.filter((imgUrl) => imgUrl !== url));
-  };
-
+  // 새 이미지 삭제 처리
   const handleRemoveNewImage = (index) => {
     setNewImageFiles((prev) => prev.filter((_, i) => i !== index));
     setNewImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // 2. 게시글 수정 저장 (PUT)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -87,8 +114,8 @@ function PostEdit() {
 
     try {
       const formData = new FormData();
-      formData.append('title', `[${category}] ${title}`);
-      formData.append('content', content);
+      formData.append('title', `[${category}] ${title.trim()}`);
+      formData.append('content', content.trim());
       existingImages.forEach((url) => {
         formData.append('existing_images', url);
       });
@@ -121,111 +148,130 @@ function PostEdit() {
 
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 0', fontSize: '18px', color: '#666' }}>
-        게시글을 불러오는 중입니다... ⏳
+      <div className={styles.container}>
+        <div className={styles.emptyState}>게시글을 불러오는 중입니다... ⏳</div>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, padding: '20px 0' }}>
-      <div style={{ maxWidth: '900px', margin: '40px auto', backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
-        <h2 style={{ borderBottom: '2px solid #333', paddingBottom: '15px', marginBottom: '30px', color: '#333' }}>
+    <div className={styles.container}>
+      <div className={styles.formContainer}>
+        <h2 className={styles.formTitle}>
           ✏️ 게시글 수정
         </h2>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#444' }}>카테고리</label>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>카테고리</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px' }}
+              className={styles.formSelect}
             >
-              <option value="Tunning Review">Tunning Review</option>
-              <option value="Q&A">Q&A</option>
+              <option value="Tunning Review">Tunning Review (튜닝 후기)</option>
+              <option value="Q&A">Q&A (질문 & 답변)</option>
             </select>
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#444' }}>제목</label>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>제목</label>
             <input
               type="text"
               placeholder="제목을 입력해주세요."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px', boxSizing: 'border-box' }}
+              className={styles.formInput}
             />
           </div>
 
-          <div style={{ marginBottom: '30px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#444' }}>내용</label>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>내용</label>
             <textarea
               placeholder="내용을 입력해주세요."
               rows="10"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px', resize: 'vertical', boxSizing: 'border-box' }}
+              className={styles.formTextarea}
             />
           </div>
-                    <div style={{ marginBottom: '30px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#444' }}>사진</label>
 
-            <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginBottom: '15px' }}>
-              {existingImages.map((imgUrl, index) => (
-                <div key={`existing-${index}`} style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #ddd' }}>
-                  <img src={imgUrl} alt={`existing-${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveExistingImage(imgUrl)}
-                    style={{ position: 'absolute', top: '2px', right: '2px', backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: '22px', height: '22px', cursor: 'pointer', fontSize: '12px', lineHeight: '1' }}
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>사진 관리</label>
 
-              {newImagePreviews.map((imgSrc, index) => (
-                <div key={`new-${index}`} style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #ddd' }}>
-                  <img src={imgSrc} alt={`new-${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveNewImage(index)}
-                    style={{ position: 'absolute', top: '2px', right: '2px', backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '50%', width: '22px', height: '22px', cursor: 'pointer', fontSize: '12px', lineHeight: '1' }}
-                  >
-                    ✕
-                  </button>
+            {/* 기존 이미지 목록 */}
+            {existingImages.length > 0 && (
+              <div style={{ marginBottom: '14px' }}>
+                <div style={{ fontSize: '12.5px', color: '#64748b', marginBottom: '8px', fontWeight: 600 }}>
+                  기존 첨부된 사진 (클릭하여 삭제):
                 </div>
-              ))}
+                <div className={styles.imagePreviewGrid}>
+                  {existingImages.map((imgUrl, index) => (
+                    <div key={`existing-${index}`} className={styles.previewItem}>
+                      <img src={imgUrl} alt={`existing-${index}`} className={styles.previewImg} />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveExistingImage(imgUrl)}
+                        className={styles.removeImgBtn}
+                        title="삭제"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 새 이미지 파일 추가 버튼 */}
+            <div>
+              <label className={styles.fileUploadBox}>
+                <span>📁</span> 사진 추가하기
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleNewImageChange}
+                  style={{ display: 'none' }}
+                />
+              </label>
             </div>
 
-            <label style={{ display: 'inline-block', backgroundColor: '#eaeaea', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', color: '#555' }}>
-              📁 이미지 추가
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleNewImageChange}
-                style={{ display: 'none' }}
-              />
-            </label>
+            {/* 새로 추가된 이미지 미리보기 */}
+            {newImagePreviews.length > 0 && (
+              <div className={styles.imagePreviewGrid}>
+                {newImagePreviews.map((previewUrl, index) => (
+                  <div key={`new-${index}`} className={styles.previewItem}>
+                    <img src={previewUrl} alt={`new-${index}`} className={styles.previewImg} />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveNewImage(index)}
+                      className={styles.removeImgBtn}
+                      title="삭제"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px' }}>
+          <div className={styles.formActions}>
             <button
               type="button"
               onClick={() => navigate(`/posts/${id}`)}
               disabled={isSubmitting}
-              style={{ backgroundColor: '#ccc', color: '#333', border: 'none', padding: '12px 25px', borderRadius: '5px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
+              className={styles.btnCancel}
             >
               취소
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              style={{ backgroundColor: isSubmitting ? '#999' : '#e74c3c', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '5px', fontWeight: 'bold', fontSize: '15px', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
+              className={styles.btnSubmit}
             >
-              {isSubmitting ? '저장 중...' : '수정 완료'}
+              {isSubmitting ? '수정 중...' : '수정 완료'}
             </button>
           </div>
         </form>

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import styles from './Community.module.css';
 
-// AuthContext/useAuth 대신 main 프로젝트의 로그인 방식을 그대로 사용.
-// Header.jsx, pages/MyPage.jsx와 동일하게 localStorage에 저장된 로그인 유저 정보를 직접 읽는다.
 const USER_STORAGE_KEY = 'mywheel_user';
 
 function getStoredUserId() {
@@ -34,6 +33,11 @@ function PostCreate() {
     setImageFiles((prev) => [...prev, ...files]);
   };
 
+  const handleRemoveImage = (index) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   // 백엔드 DB로 게시글 저장
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,20 +55,20 @@ function PostCreate() {
     setIsSubmitting(true);
 
     try {
-              const formData = new FormData();
-        formData.append('title', `[${category}] ${title}`);
-        formData.append('content', content);
-        imageFiles.forEach((file) => {
-          formData.append('images', file);
-        });
+      const formData = new FormData();
+      formData.append('title', `[${category}] ${title.trim()}`);
+      formData.append('content', content.trim());
+      imageFiles.forEach((file) => {
+        formData.append('images', file);
+      });
 
-        const response = await fetch('http://localhost:8000/api/posts', {
-          method: 'POST',
-          headers: {
-            'X-User-Id': String(userId),
-          },
-          body: formData,
-        });
+      const response = await fetch('http://localhost:8000/api/posts', {
+        method: 'POST',
+        headers: {
+          'X-User-Id': String(userId),
+        },
+        body: formData,
+      });
 
       if (response.ok) {
         alert('게시글이 성공적으로 등록되었습니다!');
@@ -82,82 +86,94 @@ function PostCreate() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', fontFamily: 'sans-serif', margin: 0, padding: '20px 0' }}>
-      <div style={{ maxWidth: '900px', margin: '40px auto', backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
-        <h2 style={{ borderBottom: '2px solid #333', paddingBottom: '15px', marginBottom: '30px', color: '#333' }}>
+    <div className={styles.container}>
+      <div className={styles.formContainer}>
+        <h2 className={styles.formTitle}>
           ✏️ 커뮤니티 글쓰기
         </h2>
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#444' }}>카테고리</label>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>카테고리</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px' }}
+              className={styles.formSelect}
             >
-              <option value="Tunning Review">Tunning Review</option>
-              <option value="Q&A">Q&A</option>
+              <option value="Tunning Review">Tunning Review (튜닝 후기)</option>
+              <option value="Q&A">Q&A (질문 & 답변)</option>
             </select>
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#444' }}>제목</label>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>제목</label>
             <input
               type="text"
               placeholder="제목을 입력해주세요."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px', boxSizing: 'border-box' }}
+              className={styles.formInput}
             />
           </div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#444' }}>내용</label>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>내용</label>
             <textarea
-              placeholder="내용을 입력해주세요."
+              placeholder="자유롭게 내용을 작성해주세요..."
               rows="10"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '15px', resize: 'vertical', boxSizing: 'border-box' }}
+              className={styles.formTextarea}
             />
           </div>
 
-          <div style={{ marginBottom: '30px' }}>
-            <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: '#444' }}>사진 첨부</label>
-            <label style={{ display: 'inline-block', backgroundColor: '#eaeaea', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', color: '#555', marginBottom: '15px' }}>
-              📁 이미지 파일 선택 (여러 장 가능)
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageChange}
-                style={{ display: 'none' }}
-              />
-            </label>
-
-            <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-              {images.map((imgSrc, index) => (
-                <div key={index} style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #ddd' }}>
-                  <img src={imgSrc} alt={`preview-${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-              ))}
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>사진 첨부</label>
+            <div>
+              <label className={styles.fileUploadBox}>
+                <span>📁</span> 이미지 파일 선택 (다중 선택 가능)
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  style={{ display: 'none' }}
+                />
+              </label>
             </div>
+
+            {images.length > 0 && (
+              <div className={styles.imagePreviewGrid}>
+                {images.map((imgSrc, index) => (
+                  <div key={index} className={styles.previewItem}>
+                    <img src={imgSrc} alt={`preview-${index}`} className={styles.previewImg} />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className={styles.removeImgBtn}
+                      title="삭제"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px' }}>
+          <div className={styles.formActions}>
             <button
               type="button"
               onClick={() => navigate('/community')}
               disabled={isSubmitting}
-              style={{ backgroundColor: '#ccc', color: '#333', border: 'none', padding: '12px 25px', borderRadius: '5px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
+              className={styles.btnCancel}
             >
               취소
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              style={{ backgroundColor: isSubmitting ? '#999' : '#e74c3c', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '5px', fontWeight: 'bold', fontSize: '15px', cursor: isSubmitting ? 'not-allowed' : 'pointer' }}
+              className={styles.btnSubmit}
             >
               {isSubmitting ? '저장 중...' : '등록하기'}
             </button>
