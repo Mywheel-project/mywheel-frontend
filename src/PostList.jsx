@@ -210,7 +210,7 @@ export default function PostList() {
                 onClick={() => navigate('/community/create')}
                 style={{ backgroundColor: '#e74c3c', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '5px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}
               >
-                ✏️ 글쓰기
+                + 글쓰기
               </button>
             </div>
           </div>
