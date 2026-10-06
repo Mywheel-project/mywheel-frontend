@@ -1,18 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-// AuthContext/useAuth 대신 main 프로젝트의 로그인 방식을 그대로 사용.
-// Header.jsx, pages/MyPage.jsx와 동일하게 localStorage에 저장된 로그인 유저 정보를 직접 읽는다.
-const USER_STORAGE_KEY = 'mywheel_user';
-
-function getStoredUserId() {
-  try {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    return saved ? JSON.parse(saved)?.id ?? null : null;
-  } catch {
-    return null;
-  }
-}
+import { getStoredUserId, getAuthHeaders } from './utils/authStorage';
 
 export default function PostList() {
   const navigate = useNavigate();
@@ -32,7 +20,7 @@ export default function PostList() {
       const url = keyword
         ? `http://localhost:8000/api/posts?search=${encodeURIComponent(keyword)}`
         : 'http://localhost:8000/api/posts';
-      const response = await fetch(url);
+      const response = await fetch(url, { headers: { ...getAuthHeaders() } });
 
       if (response.ok) {
         const data = await response.json();
@@ -73,7 +61,9 @@ export default function PostList() {
 
   const fetchHotPosts = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/posts/hot');
+      const response = await fetch('http://localhost:8000/api/posts/hot', {
+        headers: { ...getAuthHeaders() },
+      });
       if (response.ok) {
         const data = await response.json();
         setHotPosts(data);

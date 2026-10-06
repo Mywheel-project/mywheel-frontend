@@ -1,23 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
-// AuthContext/useAuth 대신 main 프로젝트의 로그인 방식을 그대로 사용.
-// Header.jsx, pages/MyPage.jsx와 동일하게 localStorage에 저장된 로그인 유저 정보를 직접 읽는다.
-const USER_STORAGE_KEY = 'mywheel_user';
-
-function getStoredUserId() {
-  try {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    return saved ? JSON.parse(saved)?.id ?? null : null;
-  } catch {
-    return null;
-  }
-}
+import { getAuthHeaders } from './utils/authStorage';
 
 function PostEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const userId = getStoredUserId();
 
   const [category, setCategory] = useState('Tunning Review');
   const [title, setTitle] = useState('');
@@ -99,7 +86,7 @@ function PostEdit() {
       const response = await fetch(`http://localhost:8000/api/posts/${id}`, {
         method: 'PUT',
         headers: {
-          'X-User-Id': String(userId),
+          ...getAuthHeaders(),
         },
         body: formData,
       });

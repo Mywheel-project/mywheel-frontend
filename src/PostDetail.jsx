@@ -1,18 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
-// AuthContext/useAuth 대신 main 프로젝트의 로그인 방식을 그대로 사용.
-// Header.jsx, pages/MyPage.jsx와 동일하게 localStorage에 저장된 로그인 유저 정보를 직접 읽는다.
-const USER_STORAGE_KEY = 'mywheel_user';
-
-function getStoredUserId() {
-  try {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    return saved ? JSON.parse(saved)?.id ?? null : null;
-  } catch {
-    return null;
-  }
-}
+import { getStoredUserId, getAuthHeaders } from './utils/authStorage';
 
 export default function PostDetail() {
   const { id } = useParams();
@@ -41,7 +29,9 @@ export default function PostDetail() {
     const fetchPostDetail = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8000/api/posts/${id}`);
+        const response = await fetch(`http://localhost:8000/api/posts/${id}`, {
+          headers: { ...getAuthHeaders() },
+        });
         if (response.ok) {
           const data = await response.json();
           setPost(data);
@@ -73,7 +63,7 @@ export default function PostDetail() {
       const response = await fetch(`http://localhost:8000/api/posts/${id}/like`, {
         method: 'POST',
         headers: {
-          'X-User-Id': String(userId),
+          ...getAuthHeaders(),
         },
       });
 
@@ -106,7 +96,7 @@ export default function PostDetail() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Id': String(userId),
+          ...getAuthHeaders(),
         },
         body: JSON.stringify({
           content: commentText,
@@ -134,7 +124,7 @@ export default function PostDetail() {
       const response = await fetch(`http://localhost:8000/api/posts/${id}`, {
         method: 'DELETE',
         headers: {
-          'X-User-Id': String(userId),
+          ...getAuthHeaders(),
         },
       });
 
