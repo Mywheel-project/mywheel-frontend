@@ -4,41 +4,37 @@ import LoginModal from './LoginModal';
 import SignupModal from './SignupModal';
 import styles from './Header.module.css';
 import logoImg from '../assets/Mywheellogo3.png';
-
-// 로그인한 유저 정보를 저장하는 localStorage 키.
-// 새로고침/재방문해도 로그인 상태가 유지되도록 여기에 저장한다.
-const USER_STORAGE_KEY = 'mywheel_user';
-
-function getStoredUser() {
-  try {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    return saved ? JSON.parse(saved) : null;
-  } catch {
-    return null;
-  }
-}
+import { saveSession, getCurrentUser, clearSession } from '../utils/authStorage';
 
 function Header() {
   const [authModal, setAuthModal] = useState(null);
   const location = useLocation();
   // 로그인/로그아웃 시 페이지를 새로고침하므로, 이 값은 매번 마운트될 때
   // localStorage 에서 한 번만 읽으면 된다 (별도 상태 갱신이 필요 없다).
-  const user = getStoredUser();
+  const user = getCurrentUser();
 
   const openLogin = () => setAuthModal('login');
   const openSignup = () => setAuthModal('signup');
   const closeAuth = () => setAuthModal(null);
 
+  // 로그인하지 않았으면 이동을 막고 알림을 띄운다.
+  const requireLogin = (e) => {
+    if (!user) {
+      e.preventDefault();
+      alert('로그인 후 이용 가능합니다');
+    }
+  };
+
   // LoginModal 에서 로그인에 성공했을 때 호출된다.
   // MyPage 등 다른 페이지들은 로그인 여부를 마운트 시점에만 확인하므로,
   // 로그인 상태 변경을 전체 화면에 바로 반영하기 위해 페이지를 새로고침한다.
   const handleLoginSuccess = (loggedInUser) => {
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(loggedInUser));
+    saveSession(loggedInUser);
     window.location.reload();
   };
 
   const handleLogout = () => {
-    localStorage.removeItem(USER_STORAGE_KEY);
+    clearSession();
     window.location.reload();
   };
 
@@ -56,6 +52,7 @@ function Header() {
         <nav className={styles.navMenu}>
           <NavLink
             to="/map"
+            onClick={requireLogin}
             className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
             }
@@ -64,6 +61,7 @@ function Header() {
           </NavLink>
           <NavLink
             to="/custom"
+            onClick={requireLogin}
             className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
             }
@@ -72,14 +70,17 @@ function Header() {
           </NavLink>
           <NavLink
             to="/community"
-            className={
-              isCommunityActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+            onClick={requireLogin}
+            className={({ isActive }) =>
+              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+
             }
           >
             COMMUNITY
           </NavLink>
           <NavLink
             to="/mypage"
+            onClick={requireLogin}
             className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
             }

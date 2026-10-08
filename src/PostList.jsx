@@ -1,17 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './Community.module.css';
+import { getStoredUserId, getAuthHeaders } from './utils/authStorage';
 
-const USER_STORAGE_KEY = 'mywheel_user';
-
-function getStoredUserId() {
-  try {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    return saved ? JSON.parse(saved)?.id ?? null : null;
-  } catch {
-    return null;
-  }
-}
 
 export default function PostList() {
   const navigate = useNavigate();
@@ -32,7 +22,7 @@ export default function PostList() {
       const url = keyword
         ? `http://localhost:8000/api/posts?search=${encodeURIComponent(keyword)}`
         : 'http://localhost:8000/api/posts';
-      const response = await fetch(url);
+      const response = await fetch(url, { headers: { ...getAuthHeaders() } });
 
       if (response.ok) {
         const data = await response.json();
@@ -81,7 +71,24 @@ export default function PostList() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // 탭 필터링 로직
+    const [hotPosts, setHotPosts] = useState([]);
+
+  const fetchHotPosts = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/posts/hot', {
+        headers: { ...getAuthHeaders() },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setHotPosts(data);
+      }
+    } catch (error) {
+      console.error('핫게시물 불러오기 실패:', error);
+    }
+  }; 
+
+
+  // 탭 필터링 로직 (제목 앞 [카테고리] 문자열 매칭)
   const filteredPosts = currentTab === 'All'
     ? posts
     : currentTab === 'My Posts'

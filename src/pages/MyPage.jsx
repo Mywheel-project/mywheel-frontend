@@ -8,6 +8,7 @@ import EditVehicleModal from '../components/EditVehicleModal';
 import ImageLightbox from '../components/ImageLightbox';
 import WheelCatalogModal from '../components/WheelCatalogModal';
 import styles from './MyPage.module.css';
+import { getCurrentUser, getStoredUserId, getAuthHeaders, saveSession } from '../utils/authStorage';
 
 const DEFAULT_WHEEL_DETAIL = {
   specs: [
@@ -36,20 +37,9 @@ const DEFAULT_WHEEL_DETAIL = {
 const VISIBLE_WHEELS = 3;
 const GALLERY_IMAGES_PER_PAGE = 6;
 
-// Header 에서 로그인 성공 시 저장하는 것과 동일한 localStorage 키.
-// 여기서는 로그인 여부 판단과 "내 id" 를 얻는 용도로만 사용하고,
+// localStorage 세션은 로그인 여부 판단과 "내 id" 를 얻는 용도로만 사용하고,
 // 실제 닉네임/이메일/프로필 사진은 항상 /users/me 를 호출해 DB 최신값을 받아온다.
-const USER_STORAGE_KEY = 'mywheel_user';
 const API_BASE_URL = 'http://localhost:8000';
-
-function getStoredUserId() {
-  try {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    return saved ? JSON.parse(saved)?.id ?? null : null;
-  } catch {
-    return null;
-  }
-}
 
 const DEFAULT_PROFILE = {
   name: '닉네임(이름)',
@@ -80,7 +70,7 @@ function MyPage() {
     if (!userId) return;
 
     fetch(`${API_BASE_URL}/users/me`, {
-      headers: { 'X-User-Id': String(userId) },
+      headers: { ...getAuthHeaders() },
     })
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
@@ -138,7 +128,7 @@ function MyPage() {
     if (!userId) return;
 
     fetch(`${API_BASE_URL}/vehicles/me`, {
-      headers: { 'X-User-Id': String(userId) },
+      headers: { ...getAuthHeaders() },
     })
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => setVehicle(data ?? null))
@@ -152,7 +142,7 @@ function MyPage() {
     if (!userId) return;
 
     fetch(`${API_BASE_URL}/api/v1/custom/gallery`, {
-      headers: { 'X-User-Id': String(userId) },
+      headers: { ...getAuthHeaders() },
     })
       .then((response) => (response.ok ? response.json() : []))
       .then((data) => setGalleryImages(Array.isArray(data) ? data : []))
@@ -196,6 +186,7 @@ function MyPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...getAuthHeaders(),
           },
           body: JSON.stringify({
             user_id: userId,
@@ -224,7 +215,8 @@ function MyPage() {
     }));
 
     // Header 가 localStorage 에서 닉네임을 읽으므로, 다음 새로고침에도 최신 값이 보이도록 갱신한다.
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+    // 응답에는 access_token 이 없으므로 기존 세션에 덮어써서 토큰을 유지한다.
+    saveSession({ ...getCurrentUser(), ...updatedUser });
   };
 
   return (
@@ -438,7 +430,6 @@ function MyPage() {
       <EditProfileModal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
-        userId={userId}
         initialName={profile.name}
         initialEmail={profile.email}
         onConfirm={handleConfirmProfile}
@@ -446,7 +437,6 @@ function MyPage() {
       <EditVehicleModal
         isOpen={isVehicleModalOpen}
         onClose={() => setIsVehicleModalOpen(false)}
-        userId={userId}
         vehicle={vehicle}
         onConfirm={(updatedVehicle) => setVehicle(updatedVehicle)}
       />
