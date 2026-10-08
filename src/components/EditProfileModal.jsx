@@ -1,12 +1,12 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import styles from './EditProfileModal.module.css';
+import { getAuthHeaders } from '../utils/authStorage';
 
 const API_BASE_URL = 'http://localhost:8000';
 
 function EditProfileModal({
   isOpen,
   onClose,
-  userId,
   initialName = '닉네임(이름)',
   initialEmail = 'example@gmail.com',
   onConfirm,
@@ -74,7 +74,7 @@ function EditProfileModal({
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'X-User-Id': String(userId),
+          ...getAuthHeaders(),
         },
         body: JSON.stringify({ email, nickname: name }),
       });

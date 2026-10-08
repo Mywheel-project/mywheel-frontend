@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import styles from './EditVehicleModal.module.css';
+import { getAuthHeaders } from '../utils/authStorage';
 
 const API_BASE_URL = 'http://localhost:8000';
 
@@ -11,7 +12,7 @@ const EMPTY_VEHICLE = {
   bolt_spec: '',
 };
 
-function EditVehicleModal({ isOpen, onClose, userId, vehicle, onConfirm }) {
+function EditVehicleModal({ isOpen, onClose, vehicle, onConfirm }) {
   const titleId = useId();
   const fileInputRef = useRef(null);
   const [form, setForm] = useState(EMPTY_VEHICLE);
@@ -97,7 +98,7 @@ function EditVehicleModal({ isOpen, onClose, userId, vehicle, onConfirm }) {
 
       const response = await fetch(`${API_BASE_URL}/vehicles/me`, {
         method: 'PUT',
-        headers: { 'X-User-Id': String(userId) },
+        headers: { ...getAuthHeaders() },
         body: formData,
       });
 

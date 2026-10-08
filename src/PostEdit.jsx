@@ -1,24 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import styles from './Community.module.css';
+import { getAuthHeaders } from './utils/authStorage';
 
-const USER_STORAGE_KEY = 'mywheel_user';
-
-function getStoredUserId() {
-  try {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    return saved ? JSON.parse(saved)?.id ?? null : null;
-  } catch {
-    return null;
-  }
-}
 
 function PostEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const userId = getStoredUserId();
-  const isLoggedIn = !!userId;
-
   const [category, setCategory] = useState('Tunning Review');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -126,7 +113,7 @@ function PostEdit() {
       const response = await fetch(`http://localhost:8000/api/posts/${id}`, {
         method: 'PUT',
         headers: {
-          'X-User-Id': String(userId),
+          ...getAuthHeaders(),
         },
         body: formData,
       });
