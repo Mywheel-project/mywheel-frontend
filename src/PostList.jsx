@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import styles from './Community.module.css'; 
 import { getStoredUserId, getAuthHeaders } from './utils/authStorage';
 
 
@@ -36,10 +37,11 @@ export default function PostList() {
       setLoading(false);
     }
   };
-
-  const fetchHotPosts = async () => {
+ const fetchHotPosts = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/posts/hot');
+      const response = await fetch('http://localhost:8000/api/posts/hot', {
+        headers: { ...getAuthHeaders() },
+      });
       if (response.ok) {
         const data = await response.json();
         setHotPosts(data);
@@ -47,7 +49,19 @@ export default function PostList() {
     } catch (error) {
       console.error('핫게시물 불러오기 실패:', error);
     }
-  };
+  }; 
+
+  // const fetchHotPosts = async () => {
+  //   try {
+  //     const response = await fetch('http://localhost:8000/api/posts/hot');
+  //     if (response.ok) {
+  //       const data = await response.json();
+  //       setHotPosts(data);
+  //     }
+  //   } catch (error) {
+  //     console.error('핫게시물 불러오기 실패:', error);
+  //   }
+  // };
 
   useEffect(() => {
     fetchPosts();
@@ -71,21 +85,9 @@ export default function PostList() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-    const [hotPosts, setHotPosts] = useState([]);
+    // const [hotPosts, setHotPosts] = useState([]);
 
-  const fetchHotPosts = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/api/posts/hot', {
-        headers: { ...getAuthHeaders() },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setHotPosts(data);
-      }
-    } catch (error) {
-      console.error('핫게시물 불러오기 실패:', error);
-    }
-  }; 
+ 
 
 
   // 탭 필터링 로직 (제목 앞 [카테고리] 문자열 매칭)
