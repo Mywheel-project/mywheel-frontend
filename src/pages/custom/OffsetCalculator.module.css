@@ -1,0 +1,471 @@
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  color: #222;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* 상단 헤더 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+
+.headerLeft {
+  flex: 1;
+}
+
+.titleBadge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #e60000;
+  background: rgba(230, 0, 0, 0.08);
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 0.35rem;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #111;
+  margin: 0 0 0.3rem 0;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.subtitle strong {
+  color: #222;
+}
+
+.resetBtn {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.resetBtn:hover {
+  background: #e5e7eb;
+  color: #111;
+}
+
+/* 메인 2단 그리드 */
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 좌측 입력 영역 */
+.inputSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.specCard {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1rem 1.15rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.currentCard {
+  border-left: 4px solid #888;
+}
+
+.newCard {
+  border-left: 4px solid #e60000;
+  box-shadow: 0 2px 10px rgba(230, 0, 0, 0.05);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+}
+
+.cardHeader h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+  color: #111;
+}
+
+.cardBadgeCurrent {
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: #6c757d;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.cardBadgeNew {
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: #e60000;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.formGroup label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.formGroup input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111;
+  background: #fafafa;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.formGroup input:focus {
+  outline: none;
+  border-color: #e60000;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(230, 0, 0, 0.1);
+}
+
+.inputWithUnit {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputWithUnit input {
+  padding-right: 1.8rem;
+}
+
+.unit {
+  position: absolute;
+  right: 6px;
+  font-size: 0.65rem;
+  color: #888;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* 타이어 서브 섹션 */
+.tireSubSection {
+  margin-top: 0.8rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.tireSubTitle {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #6b7280;
+  margin-bottom: 0.4rem;
+}
+
+.toggleRow {
+  padding: 0.2rem 0;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  accent-color: #e60000;
+  cursor: pointer;
+}
+
+/* 우측 결과 섹션 */
+.resultSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* 핵심 지표 카드 */
+.highlightGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 500px) {
+  .highlightGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.highlightCard {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.alertWarning {
+  background: linear-gradient(145deg, #ffffff 0%, #fff7f7 100%);
+  border-top: 3px solid #e60000;
+}
+
+.alertNormal {
+  background: linear-gradient(145deg, #ffffff 0%, #f9fafb 100%);
+  border-top: 3px solid #4b5563;
+}
+
+.alertDanger {
+  background: linear-gradient(145deg, #ffffff 0%, #fff5f5 100%);
+  border-top: 3px solid #d9363e;
+}
+
+.alertSafe {
+  background: linear-gradient(145deg, #ffffff 0%, #f4fbf7 100%);
+  border-top: 3px solid #28a745;
+}
+
+.highlightTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #4b5563;
+  margin-bottom: 0.25rem;
+}
+
+.badgeIndicator {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.highlightValue {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #111;
+  margin-bottom: 0.2rem;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.highlightValue small {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+}
+
+.highlightDesc {
+  font-size: 0.74rem;
+  color: #666;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.highlightDesc strong {
+  color: #111;
+}
+
+/* 2D Visualizer */
+.visualizerCard {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.visualizerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.visualizerHeader h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0;
+  color: #111;
+}
+
+.legend {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.legendCur, .legendNew {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.legendCur i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1px dashed #888;
+  background: #e0e0e0;
+  border-radius: 2px;
+}
+
+.legendNew i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1px solid #e60000;
+  background: rgba(230, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+.svgWrapper {
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.visualizerSvg {
+  width: 100%;
+  height: auto;
+  max-height: 240px;
+  display: block;
+}
+
+.svgAreaLabel {
+  font-size: 9px;
+  font-weight: 700;
+  fill: #999;
+}
+
+.hubLabel {
+  font-size: 8.5px;
+  font-weight: 700;
+  fill: #e60000;
+}
+
+.svgDiffText {
+  font-size: 9.5px;
+  font-weight: 800;
+  fill: #e60000;
+}
+
+/* 상세 비교 테이블 */
+.detailTableCard {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.detailTableCard h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0 0 0.6rem 0;
+  color: #111;
+}
+
+.tableResponsive {
+  overflow-x: auto;
+}
+
+.specTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+}
+
+.specTable th, .specTable td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.specTable th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+
+.specTable tr:last-child td {
+  border-bottom: none;
+}
+
+.textBold {
+  font-weight: 700;
+  color: #111;
+}
+
+.textBoldRed {
+  font-weight: 700;
+  color: #e60000;
+}
+
+.textDanger {
+  font-weight: 700;
+  color: #d9363e;
+}

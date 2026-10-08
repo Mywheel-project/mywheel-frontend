@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import LoginModal from './LoginModal';
 import SignupModal from './SignupModal';
 import styles from './Header.module.css';
@@ -20,6 +20,7 @@ function getStoredUser() {
 
 function Header() {
   const [authModal, setAuthModal] = useState(null);
+  const location = useLocation();
   // 로그인/로그아웃 시 페이지를 새로고침하므로, 이 값은 매번 마운트될 때
   // localStorage 에서 한 번만 읽으면 된다 (별도 상태 갱신이 필요 없다).
   const user = getStoredUser();
@@ -48,6 +49,8 @@ function Header() {
     localStorage.removeItem(USER_STORAGE_KEY);
     window.location.reload();
   };
+
+  const isCommunityActive = location.pathname.startsWith('/community') || location.pathname.startsWith('/posts');
 
   return (
     <>
@@ -82,6 +85,7 @@ function Header() {
             onClick={requireLogin}
             className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+
             }
           >
             COMMUNITY
