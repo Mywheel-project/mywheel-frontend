@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getStoredUserId, getAuthHeaders } from './utils/authStorage';
 
+
 export default function PostDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export default function PostDetail() {
     fetchPostDetail();
   }, [id]);
 
-    const handleLikeClick = async () => {
+  const handleLikeClick = async () => {
     if (isLiking) return;
 
     if (!isLoggedIn) {
@@ -68,14 +69,18 @@ export default function PostDetail() {
       });
 
       if (response.ok) {
-        const updatedPost = await response.json();
-        setPost(updatedPost);
+        const data = await response.json();
+        setPost((prev) => ({
+          ...prev,
+          liked_by_me: data.liked,
+          likes_count: data.likes_count,
+        }));
       } else {
         const errorData = await response.json().catch(() => ({}));
-        alert(`좋아요 처리 실패: ${errorData.detail || '오류가 발생했습니다.'}`);
+        alert(`좋아요 실패: ${errorData.detail || '오류가 발생했습니다.'}`);
       }
     } catch (error) {
-      console.error('좋아요 오류:', error);
+      console.error('좋아요 요청 오류:', error);
       alert('서버와 연결할 수 없습니다.');
     } finally {
       setIsLiking(false);
@@ -84,10 +89,14 @@ export default function PostDetail() {
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
 
     if (!isLoggedIn) {
       alert('로그인이 필요합니다.');
+      return;
+    }
+
+    if (!commentText.trim()) {
+      alert('댓글 내용을 입력해주세요.');
       return;
     }
 
@@ -99,7 +108,7 @@ export default function PostDetail() {
           ...getAuthHeaders(),
         },
         body: JSON.stringify({
-          content: commentText,
+          content: commentText.trim(),
         }),
       });
 
@@ -141,119 +150,131 @@ export default function PostDetail() {
     }
   };
 
+  const parseCategoryAndTitle = (fullTitle) => {
+    const match = fullTitle?.match(/^\[(.*?)\]\s*(.*)$/);
+    if (match) {
+      return { category: match[1], cleanTitle: match[2] };
+    }
+    return { category: null, cleanTitle: fullTitle || '' };
+  };
+
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 0', fontSize: '18px', color: '#666' }}>
-        게시글을 불러오는 중입니다... ⏳
+      <div className={styles.container}>
+        <div className={styles.emptyState}>게시글을 불러오는 중입니다... ⏳</div>
       </div>
     );
   }
 
   if (!post) {
     return (
-      <div style={{ textAlign: 'center', padding: '100px 0' }}>
-        <h2 style={{ color: '#555' }}>존재하지 않거나 삭제된 게시글입니다.</h2>
-        <button
-          onClick={() => navigate('/community')}
-          style={{ marginTop: '20px', padding: '10px 20px', backgroundColor: '#e74c3c', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
-        >
-          커뮤니티 목록으로 돌아가기
-        </button>
+      <div className={styles.container}>
+        <div className={styles.emptyState}>
+          <h3>존재하지 않거나 삭제된 게시글입니다.</h3>
+          <button
+            onClick={() => navigate('/community')}
+            className={styles.btnSubmit}
+            style={{ marginTop: '16px' }}
+          >
+            커뮤니티 목록으로 돌아가기
+          </button>
+        </div>
       </div>
     );
   }
 
-  // 로그인한 유저의 id와 게시글 작성자의 user_id가 같으면 본인 글
   const isOwner = isLoggedIn && post.user_id === userId;
+  const { category, cleanTitle } = parseCategoryAndTitle(post.title);
 
   return (
-    <div style={{ backgroundColor: '#f4f4f4', minHeight: '100vh', fontFamily: 'sans-serif', padding: '40px 0' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto', backgroundColor: '#fff', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.05)', border: '1px solid #ccc' }}>
+    <div className={styles.container}>
+      <div className={styles.detailContainer}>
         
-        <h1 style={{ margin: '0 0 15px 0', fontSize: '22px', color: '#222', lineHeight: '1.4' }}>
-          {post.title}
-        </h1>
-
-        <div style={{ fontSize: '13px', color: '#666', marginBottom: '25px', display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-            <span>작성자 <strong style={{ color: '#222', marginLeft: '5px' }}>{post.author || '익명'}</strong></span>
-            <span>{post.created_at ? new Date(post.created_at).toLocaleString() : '날짜 없음'}</span>
-            <span>👁️ 조회 {post.view_count}</span>
-          </div>
-
-          {isOwner && (
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => navigate(`/community/edit/${id}`)}
-                style={{ backgroundColor: '#eaeaea', color: '#333', border: 'none', padding: '6px 14px', borderRadius: '5px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}
-              >
-                수정
-              </button>
-              <button
-                onClick={handleDelete}
-                style={{ backgroundColor: '#fff', color: '#e74c3c', border: '1px solid #e74c3c', padding: '6px 14px', borderRadius: '5px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}
-              >
-                삭제
-              </button>
-            </div>
+        {/* 상단 헤더 영역 */}
+        <div className={styles.detailHeader}>
+          {category && (
+            <span className={`${styles.categoryBadge} ${category === 'Tunning Review' ? styles.categoryReview : category === 'Q&A' ? styles.categoryQA : ''}`}>
+              {category}
+            </span>
           )}
+          <h1 className={styles.detailTitle}>{cleanTitle || post.title}</h1>
+
+          <div className={styles.detailMetaBar}>
+            <div className={styles.detailMetaLeft}>
+              <span>작성자 <strong>{post.author || '익명'}</strong></span>
+              <span>·</span>
+              <span>{post.created_at ? new Date(post.created_at).toLocaleString() : ''}</span>
+              <span>·</span>
+              <span>👁️ 조회 {post.view_count ?? 0}</span>
+            </div>
+
+            {isOwner && (
+              <div className={styles.detailOwnerActions}>
+                <button
+                  onClick={() => navigate(`/community/edit/${id}`)}
+                  className={styles.btnEdit}
+                >
+                  수정
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className={styles.btnDelete}
+                >
+                  삭제
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
-        <hr style={{ border: '0', borderTop: '1px solid #ddd', marginBottom: '25px' }} />
-
-        <div style={{ minHeight: '150px', lineHeight: '1.8', color: '#333', fontSize: '15px', whiteSpace: 'pre-line', marginBottom: '30px' }}>
+        {/* 본문 영역 */}
+        <div className={styles.detailContent}>
           {post.content}
         </div>
 
+        {/* 첨부 이미지 갤러리 */}
         {post.images && post.images.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '30px' }}>
+          <div className={styles.detailGallery}>
             {post.images.map((imgUrl, index) => (
               <img
                 key={index}
                 src={imgUrl}
                 alt={`post-image-${index}`}
-                style={{ maxWidth: '100%', maxHeight: '400px', borderRadius: '8px', border: '1px solid #eee', objectFit: 'contain' }}
+                className={styles.detailImage}
               />
             ))}
           </div>
         )}
 
-                <div style={{ marginBottom: '25px', display: 'flex', justifyContent: 'flex-start' }}>
+        {/* 좋아요 버튼 섹션 */}
+        <div className={styles.likeSection}>
           <button 
             onClick={handleLikeClick}
             disabled={isLiking}
-            style={{ 
-              backgroundColor: post.liked_by_me ? '#e74c3c' : '#eaeaea', 
-              color: post.liked_by_me ? '#fff' : '#333', 
-              border: 'none', 
-              padding: '8px 18px', 
-              borderRadius: '5px', 
-              cursor: isLiking ? 'not-allowed' : 'pointer', 
-              fontWeight: 'bold', 
-              fontSize: '14px', 
-              transition: '0.2s',
-              opacity: isLiking ? 0.6 : 1,
-            }}
+            className={`${styles.likeBtn} ${post.liked_by_me ? styles.likeBtnActive : ''}`}
           >
-            {post.liked_by_me ? '❤️' : '🤍'} 좋아요 {post.likes_count}
+            {post.liked_by_me ? '❤️' : '🤍'} <span>좋아요</span> <strong>{post.likes_count ?? 0}</strong>
           </button>
         </div>
 
-        <hr style={{ border: '0', borderTop: '1px solid #ddd', marginBottom: '20px' }} />
-
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ fontSize: '16px', color: '#222', marginBottom: '15px' }}>댓글 ({comments.length})</h3>
+        {/* 댓글 섹션 */}
+        <div className={styles.commentSection}>
+          <h3 className={styles.commentTitle}>
+            댓글 <span className={styles.commentCountBadge}>{comments.length}</span>
+          </h3>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginBottom: '20px' }}>
+          <div className={styles.commentList}>
             {comments.length === 0 ? (
-              <p style={{ fontSize: '14px', color: '#888' }}>첫 번째 댓글을 남겨보세요!</p>
+              <div className={styles.emptyState} style={{ padding: '30px', borderStyle: 'solid' }}>
+                첫 번째 댓글을 남겨보세요!
+              </div>
             ) : (
               comments.map((item) => (
-                <div key={item.id} style={{ borderBottom: '1px solid #eee', paddingBottom: '12px' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#444', marginBottom: '4px' }}>
-                    {item.author}
+                <div key={item.id} className={styles.commentItem}>
+                  <div className={styles.commentAuthor}>
+                    {item.author || '익명'}
                   </div>
-                  <div style={{ fontSize: '14px', color: '#333', lineHeight: '1.5' }}>
+                  <div className={styles.commentBody}>
                     {item.content}
                   </div>
                 </div>
@@ -261,31 +282,31 @@ export default function PostDetail() {
             )}
           </div>
 
-          <form onSubmit={handleCommentSubmit} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
             <input 
               type="text"
-              placeholder={isLoggedIn ? "댓글을 입력하세요..." : "로그인 후 댓글을 작성할 수 있습니다."}
+              placeholder={isLoggedIn ? "댓글을 작성해 보세요..." : "로그인 후 댓글을 작성할 수 있습니다."}
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               disabled={!isLoggedIn}
-              style={{ flex: 1, padding: '12px 15px', borderRadius: '5px', border: '1px solid #ccc', outline: 'none', fontSize: '14px' }}
+              className={styles.commentInput}
             />
             <button 
               type="submit"
               disabled={!isLoggedIn}
-              style={{ backgroundColor: isLoggedIn ? '#e74c3c' : '#ccc', color: '#fff', border: 'none', padding: '12px 25px', borderRadius: '5px', fontWeight: 'bold', cursor: isLoggedIn ? 'pointer' : 'not-allowed', fontSize: '14px' }}
+              className={styles.commentSubmitBtn}
             >
-              등록하기
+              등록
             </button>
           </form>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <div className={styles.bottomNav}>
           <button 
             onClick={() => navigate('/community')}
-            style={{ backgroundColor: '#7f8c8d', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}
+            className={styles.btnBack}
           >
-            목록으로
+            ← 목록으로
           </button>
         </div>
 

@@ -268,21 +268,52 @@ function MyPage() {
               </button>
             </div>
             <div className={styles.carImageWrap}>
-              <img
-                src={vehicle?.image_url ?? carImg}
-                alt={vehicle?.name ?? '차량 사진 없음'}
-                className={styles.carImage}
-              />
+              {vehicle?.image_url ? (
+                <img
+                  src={vehicle.image_url}
+                  alt={vehicle.name || '차량 사진'}
+                  className={styles.carImage}
+                />
+              ) : (
+                <div 
+                  className={styles.emptyCarPlaceholder}
+                  onClick={() => setIsVehicleModalOpen(true)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+                    <circle cx="7" cy="17" r="2" />
+                    <path d="M9 17h6" />
+                    <circle cx="17" cy="17" r="2" />
+                  </svg>
+                  <span className={styles.placeholderText}>
+                    {vehicle ? '등록된 차량 사진이 없습니다' : '차량을 등록하고 사진을 추가해보세요'}
+                  </span>
+                </div>
+              )}
             </div>
             {vehicle ? (
-              <ul className={styles.specList}>
-                <li>PCD : {vehicle.pcd || '-'}</li>
-                <li>홀 수 : {vehicle.hole_count || '-'}</li>
-                <li>허브 보어 : {vehicle.hub_bore || '-'}</li>
-                <li>볼트 규격 : {vehicle.bolt_spec || '-'}</li>
-              </ul>
+              <div className={styles.specGrid}>
+                <div className={styles.specItem}>
+                  <span className={styles.specLabel}>PCD</span>
+                  <span className={styles.specValue}>{vehicle.pcd || '-'}</span>
+                </div>
+                <div className={styles.specItem}>
+                  <span className={styles.specLabel}>홀 수</span>
+                  <span className={styles.specValue}>{vehicle.hole_count || '-'}</span>
+                </div>
+                <div className={styles.specItem}>
+                  <span className={styles.specLabel}>허브 보어</span>
+                  <span className={styles.specValue}>{vehicle.hub_bore || '-'}</span>
+                </div>
+                <div className={styles.specItem}>
+                  <span className={styles.specLabel}>볼트 규격</span>
+                  <span className={styles.specValue}>{vehicle.bolt_spec || '-'}</span>
+                </div>
+              </div>
             ) : (
-              <p className={styles.specList}>차량을 등록하면 사진과 제원이 표시됩니다.</p>
+              <p className={styles.emptyVehicleDesc}>차량을 등록하면 사진과 상세 제원이 표시됩니다.</p>
             )}
           </section>
         </div>
@@ -297,7 +328,7 @@ function MyPage() {
                 사진 생성
               </Link>
             </div>
-            <div className={styles.galleryInner}>
+            <div>
               {galleryImages.length === 0 ? (
                 <p className={styles.galleryEmpty}>
                   아직 생성한 사진이 없습니다. 휠 튜닝에서 만들어보세요!

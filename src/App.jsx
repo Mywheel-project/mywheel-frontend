@@ -14,6 +14,7 @@ import CustomPage from './pages/custom/CustomPage';
 import WheelTuning from './pages/custom/WheelTuning';
 import MyCarSpecs from './pages/custom/MyCarSpecs';
 import WheelSpecsSearch from './pages/custom/WheelSpecsSearch';
+import OffsetCalculator from './pages/custom/OffsetCalculator';
 
 // 주요 메뉴 및 커뮤니티 컴포넌트 임포트
 import MyPage from './pages/MyPage';
@@ -45,6 +46,7 @@ function App() {
             <Route path="tuning" element={<WheelTuning />} />
             <Route path="my-specs" element={<MyCarSpecs />} />
             <Route path="search" element={<WheelSpecsSearch />} />
+            <Route path="calculator" element={<OffsetCalculator />} />
           </Route>
 
           {/* 기타 주요 메뉴 라우팅 */}
