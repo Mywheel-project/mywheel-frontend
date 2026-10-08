@@ -1,16 +1,17 @@
 .page {
   width: 100%;
   min-height: calc(100vh - 70px);
-  background-color: #ffffff;
-  padding: 2rem 2.5rem 3rem;
+  padding: 2.5rem 2rem 4rem;
   box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #1e293b;
 }
 
 .layout {
-  max-width: 1200px;
+  max-width: 1160px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(280px, 0.9fr) minmax(420px, 1.6fr);
+  grid-template-columns: minmax(300px, 0.95fr) minmax(440px, 1.55fr);
   gap: 1.5rem;
   align-items: start;
 }
@@ -23,11 +24,17 @@
   min-width: 0;
 }
 
+/* 통일된 모던 카드 스타일 */
 .card {
-  background-color: #d9d9d9;
-  border-radius: 28px;
-  padding: 1.4rem 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.5rem 1.6rem;
   box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  border-color: #cbd5e1;
 }
 
 .cardHeader {
@@ -35,38 +42,45 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .cardTitle {
   margin: 0;
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  color: #111;
+  color: #0f172a;
+  letter-spacing: -0.3px;
 }
 
+/* 빨간 포인트 버튼 */
 .redBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   border: none;
   cursor: pointer;
-  background-color: #d40000;
+  background-color: #D40000;
   color: #ffffff;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 700;
   padding: 0.45rem 1rem;
-  border-radius: 10px;
+  border-radius: 8px;
   white-space: nowrap;
   text-decoration: none;
-  transition: background-color 0.15s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(212, 0, 0, 0.18);
 }
 
 .redBtn:hover {
-  background-color: #b80000;
+  background-color: #b70000;
+  transform: translateY(-1px);
 }
 
-/* 프로필 */
+/* 프로필 카드 */
 .profileRow {
   display: flex;
   align-items: center;
@@ -74,11 +88,13 @@
 }
 
 .avatar {
-  width: 96px;
-  height: 96px;
+  width: 84px;
+  height: 84px;
   flex-shrink: 0;
   border-radius: 50%;
   overflow: hidden;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .avatar img,
@@ -93,41 +109,44 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.35rem;
+  gap: 0.3rem;
   min-width: 0;
 }
 
 .nickname {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 800;
-  color: #111;
+  color: #0f172a;
+  letter-spacing: -0.3px;
 }
 
 .email {
   margin: 0;
-  font-size: 0.95rem;
-  color: #333;
+  font-size: 0.88rem;
+  color: #64748b;
 }
 
 .editBtn {
-  margin-top: 0.35rem;
-  border: none;
+  margin-top: 0.4rem;
+  border: 1px solid #cbd5e1;
   cursor: pointer;
-  background-color: #b0b0b0;
-  color: #111;
-  font-size: 0.85rem;
+  background: transparent;
+  color: #475569;
+  font-size: 0.8rem;
   font-weight: 600;
-  padding: 0.35rem 0.85rem;
-  border-radius: 8px;
-  transition: background-color 0.15s ease;
+  padding: 0.35rem 0.8rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
 }
 
 .editBtn:hover {
-  background-color: #9a9a9a;
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border-color: #94a3b8;
 }
 
-/* 차량 정보 */
+/* 차량 정보 카드 */
 .carCard {
   display: flex;
   flex-direction: column;
@@ -138,31 +157,90 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  margin: 0.25rem 0 1rem;
+  align-items: center;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+}
+
+.emptyCarPlaceholder {
+  width: 100%;
+  height: 140px;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fafafa;
+}
+
+.emptyCarPlaceholder:hover {
+  border-color: #D40000;
+  background: #ffffff;
+}
+
+.emptyCarPlaceholder:hover svg {
+  stroke: #D40000;
+}
+
+.placeholderText {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+  transition: color 0.15s ease;
+}
+
+.emptyCarPlaceholder:hover .placeholderText {
+  color: #D40000;
 }
 
 .carImage {
   width: 100%;
-  max-width: 280px;
+  max-width: 260px;
   height: auto;
   object-fit: contain;
   display: block;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.08));
 }
 
-.specList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  text-align: center;
+/* 제원 2열 그리드 배지 */
+.specGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.specItem {
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 2px;
 }
 
-.specList li {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #111;
+.specLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.specValue {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.emptyVehicleDesc {
+  text-align: center;
+  font-size: 0.88rem;
+  color: #94a3b8;
+  padding: 1rem 0;
+  margin: 0;
 }
 
 /* 갤러리 */
@@ -170,12 +248,6 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-}
-
-.galleryInner {
-  background-color: #ffffff;
-  border-radius: 18px;
-  padding: 1rem;
 }
 
 .galleryGrid {
@@ -186,12 +258,20 @@
 
 .galleryItem {
   aspect-ratio: 4 / 3;
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
-  background-color: #ececec;
-  border: none;
+  border: 1px solid #e2e8f0;
   padding: 0;
   cursor: pointer;
+  position: relative;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.galleryItem:hover {
+  border-color: #D40000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .galleryItem img {
@@ -199,56 +279,63 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.3s ease;
+}
+
+.galleryItem:hover img {
+  transform: scale(1.05);
 }
 
 .galleryEmpty {
   margin: 0;
-  padding: 2rem 1rem;
+  padding: 2.5rem 1rem;
   text-align: center;
-  font-size: 0.95rem;
-  color: #777;
+  font-size: 0.9rem;
+  color: #94a3b8;
 }
 
 .galleryPagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  gap: 6px;
+  margin-top: 1.25rem;
 }
 
 .pageBtn {
   min-width: 32px;
   height: 32px;
-  padding: 0 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #fff;
-  color: #111;
-  font-size: 0.9rem;
+  padding: 0 0.4rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: transparent;
+  color: #64748b;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  line-height: 1;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pageBtn:hover {
-  border-color: #d40000;
-  color: #d40000;
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+  color: #0f172a;
 }
 
 .pageBtnActive {
-  border-color: #d40000;
-  background-color: #d40000;
-  color: #fff;
-}
-
-.pageBtnActive:hover {
-  color: #fff;
+  border-color: #D40000 !important;
+  background-color: #D40000 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(212, 0, 0, 0.2);
 }
 
 /* 휠 즐겨찾기 */
-.favoritesCard .cardTitle {
-  margin-bottom: 1.25rem;
+.favoritesCard {
+  display: flex;
+  flex-direction: column;
 }
 
 .carousel {
@@ -259,19 +346,29 @@
 
 .arrowBtn {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
   background: transparent;
-  color: #111;
-  font-size: 1.1rem;
+  color: #475569;
+  font-size: 0.95rem;
   cursor: pointer;
-  padding: 0;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.arrowBtn:hover:not(:disabled) {
+  border-color: #D40000;
+  color: #D40000;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .arrowBtn:disabled {
-  opacity: 0.25;
+  opacity: 0.3;
   cursor: default;
 }
 
@@ -279,7 +376,7 @@
   flex: 1;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  gap: 0.9rem;
   min-width: 0;
 }
 
@@ -287,22 +384,29 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   text-align: center;
-  border: none;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  padding: 10px 8px;
   background: transparent;
-  padding: 0;
   color: inherit;
   font: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
+.wheelItem:hover {
+  border-color: #D40000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
 
 .wheelImageWrap {
-  width: auto;
-  height: 150px;
-  border-radius: 10%;
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
   overflow: hidden;
-  background-color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -311,28 +415,40 @@
 .wheelImageWrap img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+  transition: transform 0.2s ease;
+}
+
+.wheelItem:hover .wheelImageWrap img {
+  transform: scale(1.06);
 }
 
 .wheelName {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  color: #111;
+  color: #1e293b;
   transition: color 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.wheelItem:hover .wheelName {
+  color: #D40000;
 }
 
 @media (max-width: 960px) {
   .layout {
     grid-template-columns: 1fr;
   }
-
 }
 
 @media (max-width: 640px) {
   .page {
-    padding: 1.25rem 1rem 2rem;
+    padding: 1.5rem 1rem 3rem;
   }
 
   .galleryGrid {
@@ -344,8 +460,7 @@
   }
 
   .wheelImageWrap {
-    width: 96px;
-    height: 96px;
+    height: 140px;
   }
 
   .cardHeader {
