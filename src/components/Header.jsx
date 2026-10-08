@@ -29,6 +29,14 @@ function Header() {
   const openSignup = () => setAuthModal('signup');
   const closeAuth = () => setAuthModal(null);
 
+  // 로그인하지 않았으면 이동을 막고 알림을 띄운다.
+  const requireLogin = (e) => {
+    if (!user) {
+      e.preventDefault();
+      alert('로그인 후 이용 가능합니다');
+    }
+  };
+
   // LoginModal 에서 로그인에 성공했을 때 호출된다.
   // MyPage 등 다른 페이지들은 로그인 여부를 마운트 시점에만 확인하므로,
   // 로그인 상태 변경을 전체 화면에 바로 반영하기 위해 페이지를 새로고침한다.
@@ -56,6 +64,7 @@ function Header() {
         <nav className={styles.navMenu}>
           <NavLink
             to="/map"
+            onClick={requireLogin}
             className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
             }
@@ -64,6 +73,7 @@ function Header() {
           </NavLink>
           <NavLink
             to="/custom"
+            onClick={requireLogin}
             className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
             }
@@ -72,14 +82,17 @@ function Header() {
           </NavLink>
           <NavLink
             to="/community"
-            className={
-              isCommunityActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+            onClick={requireLogin}
+            className={({ isActive }) =>
+              isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
+
             }
           >
             COMMUNITY
           </NavLink>
           <NavLink
             to="/mypage"
+            onClick={requireLogin}
             className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
             }
