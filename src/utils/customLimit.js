@@ -1,20 +1,9 @@
 // 커스텀 페이지 기능 주간 5회 사용 제한 유틸리티
 
-const USER_STORAGE_KEY = 'mywheel_user';
+import { getAuthHeaders } from './authStorage';
+
 const CLIENT_STORAGE_KEY = 'mywheel_client_id';
 const API_BASE_URL = 'http://localhost:8000';
-
-/**
- * 로그인된 유저 ID 반환 (없으면 null)
- */
-export function getStoredUserId() {
-  try {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    return saved ? JSON.parse(saved)?.id ?? null : null;
-  } catch {
-    return null;
-  }
-}
 
 /**
  * 비로그인 사용자 브라우저 고유 UUID 반환 (없으면 새로 발급하여 저장)
@@ -40,18 +29,10 @@ export function getOrCreateClientId() {
  * 커스텀 기능 API 호출용 식별 헤더 객체 생성
  */
 export function getCustomAuthHeaders() {
-  const userId = getStoredUserId();
-  const clientId = getOrCreateClientId();
-
-  const headers = {
-    'X-Client-Id': clientId,
+  return {
+    'X-Client-Id': getOrCreateClientId(),
+    ...getAuthHeaders(),
   };
-
-  if (userId) {
-    headers['X-User-Id'] = String(userId);
-  }
-
-  return headers;
 }
 
 /**

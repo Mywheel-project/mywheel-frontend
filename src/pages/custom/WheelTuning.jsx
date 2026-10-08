@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import styles from './WheelTuning.module.css';
 import toolsIconImg from '../../assets/custompage/tool.png';
 import { WHEEL_ASSETS } from '../../data/wheels';
-import { getStoredUserId, fetchCustomLimits } from '../../utils/customLimit';
+import { fetchCustomLimits } from '../../utils/customLimit';
+import { getStoredUserId, getAuthHeaders } from '../../utils/authStorage';
 import { useSynthesis } from '../../context/SynthesisContext';
 import WheelCatalogModal from '../../components/WheelCatalogModal';
 
@@ -156,6 +157,7 @@ function WheelTuning() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...getAuthHeaders(),
           },
           body: JSON.stringify({
             user_id: userId,

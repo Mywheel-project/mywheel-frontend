@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './Community.module.css';
+import { getStoredUserId, getAuthHeaders } from './utils/authStorage';
 
-const USER_STORAGE_KEY = 'mywheel_user';
-
-function getStoredUserId() {
-  try {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    return saved ? JSON.parse(saved)?.id ?? null : null;
-  } catch {
-    return null;
-  }
-}
 
 function PostCreate() {
   const navigate = useNavigate();
@@ -55,20 +45,21 @@ function PostCreate() {
     setIsSubmitting(true);
 
     try {
-      const formData = new FormData();
-      formData.append('title', `[${category}] ${title.trim()}`);
-      formData.append('content', content.trim());
-      imageFiles.forEach((file) => {
-        formData.append('images', file);
-      });
+              const formData = new FormData();
+        formData.append('title', `[${category}] ${title}`);
+        formData.append('content', content);
+        imageFiles.forEach((file) => {
+          formData.append('images', file);
+        });
 
-      const response = await fetch('http://localhost:8000/api/posts', {
-        method: 'POST',
-        headers: {
-          'X-User-Id': String(userId),
-        },
-        body: formData,
-      });
+        const response = await fetch('http://localhost:8000/api/posts', {
+          method: 'POST',
+          headers: {
+            ...getAuthHeaders(),
+          },
+          body: formData,
+        });
+
 
       if (response.ok) {
         alert('게시글이 성공적으로 등록되었습니다!');
