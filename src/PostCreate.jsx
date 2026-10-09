@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getStoredUserId, getAuthHeaders } from './utils/authStorage';
+import styles from './Community.module.css'; 
+
 
 
 function PostCreate() {

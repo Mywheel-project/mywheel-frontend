@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getAuthHeaders } from './utils/authStorage';
+import styles from './Community.module.css'; 
+import { getStoredUserId, getAuthHeaders } from './utils/authStorage';
 
 
 function PostEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const userId = getStoredUserId();
+  const isLoggedIn = !!userId;
   const [category, setCategory] = useState('Tunning Review');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
