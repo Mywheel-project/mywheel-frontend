@@ -25,6 +25,12 @@ function CustomPage() {
         >
           휠 제원 검색
         </NavLink>
+        <NavLink 
+          to="/custom/calculator" 
+          className={({ isActive }) => isActive ? `${styles.tabItem} ${styles.activeTab}` : styles.tabItem}
+        >
+          옵셋 계산기
+        </NavLink>
       </div>
 
       {/* 탭 클릭에 따라 바뀌는 화면이 출력되는 영역 */}

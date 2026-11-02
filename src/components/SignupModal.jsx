@@ -10,7 +10,11 @@ const TERMS = [
 // FastAPI 백엔드 주소. 배포 시에는 .env(VITE_API_BASE_URL)로 분리하는 게 좋다.
 const API_BASE_URL = 'http://localhost:8000';
 
-function SignupModal({ isOpen, onClose }) {
+// 재전송 버튼을 눌렀을 때 다시 활성화되기까지 기다리는 시간(초). 백엔드의
+// RESEND_COOLDOWN_SECONDS(auth.py) 와 맞춰둔다.
+const RESEND_COOLDOWN_SECONDS = 60;
+
+function SignupModal({ isOpen, onClose, onSignupSuccess }) {
   const titleId = useId();
   const [nickname, setNickname] = useState('');
   const [email, setEmail] = useState('');
@@ -21,6 +25,10 @@ function SignupModal({ isOpen, onClose }) {
     privacy: false,
     marketing: false,
   });
+  // 'form': 가입 정보 입력 단계, 'code': 이메일로 받은 인증 코드 입력 단계
+  const [step, setStep] = useState('form');
+  const [code, setCode] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
   // 제출 중 중복 클릭 방지 + 에러 메시지 표시용 상태
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -35,6 +43,9 @@ function SignupModal({ isOpen, onClose }) {
     setPassword('');
     setPasswordConfirm('');
     setAgreements({ service: false, privacy: false, marketing: false });
+    setStep('form');
+    setCode('');
+    setResendCooldown(0);
     setErrorMessage('');
 
     const onKeyDown = (event) => {
@@ -50,6 +61,17 @@ function SignupModal({ isOpen, onClose }) {
       document.body.style.overflow = previousOverflow;
     };
   }, [isOpen, onClose]);
+
+  // 재전송 쿨다운 카운트다운. 코드 입력 단계일 때만 동작한다.
+  useEffect(() => {
+    if (step !== 'code' || resendCooldown <= 0) return;
+
+    const timer = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [step, resendCooldown]);
 
   if (!isOpen) return null;
 
@@ -68,6 +90,29 @@ function SignupModal({ isOpen, onClose }) {
 
   const toggleAgreement = (key) => {
     setAgreements((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // FastAPI 에러 응답은 detail 필드에 메시지(문자열) 또는 검증 오류 배열이
+  // 담기므로 두 형태를 모두 처리한다.
+  const extractErrorMessage = (body, fallback) => {
+    const detail = body?.detail;
+    if (Array.isArray(detail)) return detail.map((item) => item.msg).join(', ');
+    return detail || fallback;
+  };
+
+  // "인증 코드 보내기" 요청. 최초 제출과 재전송(handleResend) 둘 다 여기를 쓴다
+  // (백엔드도 /auth/signup 을 재요청하면 같은 이메일의 코드를 갱신해서 재전송한다).
+  const requestSignupCode = async () => {
+    const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, nickname }),
+    });
+
+    const body = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(extractErrorMessage(body, '인증 코드 전송에 실패했습니다.'));
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -90,24 +135,51 @@ function SignupModal({ isOpen, onClose }) {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      await requestSignupCode();
+      setCode('');
+      setStep('code');
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyCode = async (event) => {
+    event.preventDefault();
+    setErrorMessage('');
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/verify-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, nickname }),
+        body: JSON.stringify({ email, code }),
       });
 
+      const body = await response.json().catch(() => null);
       if (!response.ok) {
-        const body = await response.json().catch(() => null);
-        // FastAPI 에러 응답은 detail 필드에 메시지(문자열) 또는
-        // 검증 오류 배열이 담기므로 두 형태를 모두 처리한다.
-        const detail = body?.detail;
-        const message = Array.isArray(detail)
-          ? detail.map((item) => item.msg).join(', ')
-          : detail || '회원가입에 실패했습니다.';
-        throw new Error(message);
+        throw new Error(extractErrorMessage(body, '인증 코드가 일치하지 않습니다.'));
       }
 
+      // body 는 SignupResponse({ id, email, nickname, profile_image }).
+      // 계정이 이 시점에 처음 생성됐으므로 바로 로그인 상태로 전환한다.
+      onSignupSuccess?.(body);
       onClose();
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (resendCooldown > 0 || isSubmitting) return;
+    setErrorMessage('');
+    setIsSubmitting(true);
+    try {
+      await requestSignupCode();
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (error) {
       setErrorMessage(error.message);
     } finally {
@@ -133,9 +205,10 @@ function SignupModal({ isOpen, onClose }) {
         </button>
 
         <h2 id={titleId} className={styles.title}>
-          회원가입
+          {step === 'form' ? '회원가입' : '이메일 인증'}
         </h2>
 
+        {step === 'form' && (
         <form className={styles.form} onSubmit={handleSubmit}>
           <label className={styles.field}>
             <span className={styles.icon} aria-hidden="true">
@@ -285,7 +358,50 @@ function SignupModal({ isOpen, onClose }) {
             {isSubmitting ? '가입 처리 중...' : '회원가입하기'}
           </button>
         </form>
+        )}
 
+        {step === 'code' && (
+        <form className={styles.form} onSubmit={handleVerifyCode}>
+          <p className={styles.helperText}>
+            {email} 로 보낸 6자리 인증 코드를 입력해주세요.
+          </p>
+
+          <label className={styles.field}>
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={6}
+              className={styles.input}
+              placeholder="인증 코드 6자리"
+              value={code}
+              onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))}
+              autoComplete="one-time-code"
+            />
+          </label>
+
+          {errorMessage && <p className={styles.errorText}>{errorMessage}</p>}
+
+          <button
+            type="submit"
+            className={styles.submitBtn}
+            disabled={isSubmitting || code.length !== 6}
+          >
+            {isSubmitting ? '확인 중...' : '인증 완료'}
+          </button>
+
+          <button
+            type="button"
+            className={styles.viewBtn}
+            onClick={handleResend}
+            disabled={isSubmitting || resendCooldown > 0}
+          >
+            {resendCooldown > 0 ? `인증 코드 재전송 (${resendCooldown}초)` : '인증 코드 재전송'}
+          </button>
+        </form>
+        )}
+
+        {step === 'form' && (
         <div className={styles.socialSection}>
           <div className={styles.socialDivider}>
             <span>간편 로그인</span>
@@ -321,6 +437,7 @@ function SignupModal({ isOpen, onClose }) {
             </button>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

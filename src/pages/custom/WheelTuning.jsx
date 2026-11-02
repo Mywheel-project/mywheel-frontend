@@ -1,25 +1,15 @@
 import { useState, useEffect } from 'react';
 import styles from './WheelTuning.module.css';
 import toolsIconImg from '../../assets/custompage/tool.png';
-import { WHEEL_ASSETS, BRANDS } from '../../data/wheels';
-
+import { WHEEL_ASSETS } from '../../data/wheels';
+import { fetchCustomLimits } from '../../utils/customLimit';
+import { getStoredUserId, getAuthHeaders } from '../../utils/authStorage';
+import { useSynthesis } from '../../context/SynthesisContext';
+import WheelCatalogModal from '../../components/WheelCatalogModal';
 
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const USER_STORAGE_KEY = 'mywheel_user';
 const API_BASE_URL = 'http://localhost:8000';
-
-// Header 에서 로그인 성공 시 저장하는 것과 동일한 localStorage 키.
-// 로그인 상태면 합성 결과를 내 갤러리에 남기기 위해 유저 id를 함께 보낸다.
-
-function getStoredUserId() {
-  try {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    return saved ? JSON.parse(saved)?.id ?? null : null;
-  } catch {
-    return null;
-  }
-}
 
 function WheelTuning() {
   // 1. 차량 사진 관련 State
@@ -29,11 +19,17 @@ function WheelTuning() {
 
   // 2. 휠 선택 및 모달 관련 State
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
-  const [selectedBrand, setSelectedBrand] = useState('ALL');
   const [selectedWheelId, setSelectedWheelId] = useState(null);
   const [wheelFile, setWheelFile] = useState(null);
   const [wheelImagePreview, setWheelImagePreview] = useState(null);
   const [isDraggingWheel, setIsDraggingWheel] = useState(false);
+
+  // 주간 5회 사용 제한 State
+  const [weeklyLimit, setWeeklyLimit] = useState({
+    remaining: 5,
+    max: 5,
+    used: 0,
+  });
 
   const userId = getStoredUserId();
 
@@ -49,6 +45,15 @@ function WheelTuning() {
     }
     return WHEEL_ASSETS.filter((w) => w.isFavorite).map((w) => w.id);
   });
+
+  // 주간 잔여 횟수 서버에서 조회
+  useEffect(() => {
+    fetchCustomLimits().then((data) => {
+      if (data?.tuning) {
+        setWeeklyLimit(data.tuning);
+      }
+    });
+  }, [userId]);
 
   // 로그인된 경우 서버 DB의 즐겨찾기 목록을 조회해 동기화
   useEffect(() => {
@@ -67,9 +72,14 @@ function WheelTuning() {
       });
   }, [userId]);
 
-  // 3. API 요청 및 결과 State
-  const [isLoading, setIsLoading] = useState(false);
-  const [resultImageUrl, setResultImageUrl] = useState(null);
+  // 3. API 요청 및 전역 합성 Context 연동
+  const {
+    isSynthesizing: isLoading,
+    synthesisResult,
+    setSynthesisResult,
+    startSynthesis,
+  } = useSynthesis();
+  const resultImageUrl = synthesisResult?.result_image_url;
 
   // 모달 오픈 시 ESC 키 닫기 핸들러 등록
   useEffect(() => {
@@ -147,6 +157,7 @@ function WheelTuning() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            ...getAuthHeaders(),
           },
           body: JSON.stringify({
             user_id: userId,
@@ -190,6 +201,11 @@ function WheelTuning() {
 
   // AI 휠 합성 요청 함수
   const handleSynthesize = async () => {
+    if (weeklyLimit.remaining <= 0) {
+      alert('이번 주 휠 튜닝 이용 한도(5회)를 모두 소진하셨습니다. 매주 월요일 00:00에 다시 충전됩니다.');
+      return;
+    }
+
     if (!carFile) {
       alert('튜닝할 자동차 사진을 업로드해 주세요!');
       return;
@@ -198,8 +214,6 @@ function WheelTuning() {
       alert('장착할 휠을 선택하거나 직접 휠 사진을 올려주세요!');
       return;
     }
-
-    setIsLoading(true);
 
     try {
       const formData = new FormData();
@@ -221,29 +235,31 @@ function WheelTuning() {
         }
       }
 
-      const userId = getStoredUserId();
-
-      const response = await fetch(
-        'http://localhost:8000/api/v1/custom/synthesize',
-        {
-          method: 'POST',
-          headers: userId ? { 'X-User-Id': String(userId) } : undefined,
-          body: formData,
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || '합성 요청에 실패했습니다.');
-      }
-
-      const data = await response.json();
-      setResultImageUrl(data.result_image_url);
+      await startSynthesis(formData, {
+        onSuccess: (data) => {
+          if (data.remaining !== undefined) {
+            setWeeklyLimit((prev) => ({
+              ...prev,
+              remaining: data.remaining,
+              used: prev.max - data.remaining,
+            }));
+          } else {
+            setWeeklyLimit((prev) => ({
+              ...prev,
+              remaining: Math.max(0, prev.remaining - 1),
+              used: prev.used + 1,
+            }));
+          }
+        },
+        onError: (err) => {
+          if (err.message && err.message.includes('한도')) {
+            setWeeklyLimit((prev) => ({ ...prev, remaining: 0, used: prev.max }));
+          }
+        },
+      });
     } catch (error) {
-      console.error('합성 오류:', error);
+      console.error('합성 준비 오류:', error);
       alert(`오류 발생: ${error.message}`);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -284,22 +300,6 @@ function WheelTuning() {
 
   const selectedPreset = WHEEL_ASSETS.find((w) => w.id === selectedWheelId);
 
-  // 브랜드별 묶음 정렬 로직
-  const filteredWheels = WHEEL_ASSETS
-    .filter((w) => {
-      if (selectedBrand === 'ALL') return true;
-      if (selectedBrand === '즐겨찾기') return favoriteWheelIds.includes(w.id);
-      return w.brand === selectedBrand;
-    })
-    .sort((a, b) => {
-      // 1. 브랜드 이름 기준 오름차순 (BBS -> ENKEI -> HRE ... 브랜드별로 묶임)
-      const brandCompare = a.brand.localeCompare(b.brand);
-      if (brandCompare !== 0) return brandCompare;
-
-      // 2. 같은 브랜드 안에서는 모델명(또는 id) 순서로 정렬
-      return a.modelName.localeCompare(b.modelName);
-    });
-
   return (
     <div className={styles.tuningContainer}>
       {resultImageUrl ? (
@@ -324,7 +324,7 @@ function WheelTuning() {
               </svg>
               이미지 저장하기
             </button>
-            <button onClick={() => setResultImageUrl(null)} className={styles.resetBtn}>
+            <button onClick={() => setSynthesisResult(null)} className={styles.resetBtn}>
               <svg className={styles.btnIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
                 <path d="M3 3v5h5" />
@@ -337,7 +337,15 @@ function WheelTuning() {
         /* CASE B: 휠 합성 작업 화면 */
         <>
           <div className={styles.headerText}>
-            <h2>내 차에 어울리는 완벽한 휠을 찾아보세요</h2>
+            <div className={styles.headerTitleRow}>
+              <h2>내 차에 어울리는 완벽한 휠을 찾아보세요</h2>
+              <span
+                className={`${styles.limitBadge} ${weeklyLimit.remaining === 0 ? styles.limitExhausted : ''}`}
+                title="매주 월요일 00:00에 5회 충전됩니다"
+              >
+                이번 주 잔여: <strong>{weeklyLimit.remaining}</strong> / {weeklyLimit.max}회
+              </span>
+            </div>
             <p>차량 사진을 올리고 원하는 휠을 선택하면, AI가 원본 각도와 조명에 맞춰 자연스럽게 합성해 드립니다</p>
           </div>
 
@@ -518,115 +526,35 @@ function WheelTuning() {
             <button
               className={styles.submitBtn}
               onClick={handleSynthesize}
-              disabled={isLoading || !carFile || (!selectedWheelId && !wheelFile)}
+              disabled={isLoading || !carFile || (!selectedWheelId && !wheelFile) || weeklyLimit.remaining <= 0}
             >
               {isLoading ? (
                 <span className={styles.loadingTextWrapper}>
                   <span className={styles.spinner} />
                   휠 합성 진행 중... (약 10~15초 소요)
                 </span>
+              ) : weeklyLimit.remaining <= 0 ? (
+                '이번 주 한도 소진 (0/5회 - 다음 주 월요일 충전)'
               ) : (
-                '휠 튜닝 결과보기'
+                `휠 튜닝 결과보기 (${weeklyLimit.remaining}회 남음)`
               )}
             </button>
+            <p className={styles.limitNotice}>
+              휠 튜닝 기능은 매주 월요일 00:00에 5회씩 자동 충전됩니다 (잔여: {weeklyLimit.remaining}회)
+            </p>
           </div>
         </>
       )}
 
       {/* ----------------- 휠 에셋 선택 모달 창 ----------------- */}
-      {isWheelModalOpen && (
-        <div className={styles.modalBackdrop} onClick={() => setIsWheelModalOpen(false)}>
-          <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <div>
-                <h3>휠 에셋 카탈로그</h3>
-                <p>장착하고 싶은 브랜드와 휠 모델을 선택하세요</p>
-              </div>
-              <button
-                type="button"
-                className={styles.modalCloseBtn}
-                onClick={() => setIsWheelModalOpen(false)}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* 브랜드 탭 필터 */}
-            <div className={styles.brandTabsWrapper}>
-              {BRANDS.map((brand) => (
-                <button
-                  key={brand}
-                  type="button"
-                  className={`${styles.brandTab} ${selectedBrand === brand ? styles.activeBrandTab : ''}`}
-                  onClick={() => setSelectedBrand(brand)}
-                >
-                  {brand}
-                </button>
-              ))}
-            </div>
-
-            {/* 모달 휠 그리드 */}
-            <div className={styles.modalWheelGrid}>
-              {filteredWheels.map((wheel) => (
-                <div
-                  key={wheel.id}
-                  className={`${styles.modalWheelCard} ${
-                    selectedWheelId === wheel.id ? styles.selectedModalWheel : ''
-                  }`}
-                  onClick={() => handleSelectPresetWheel(wheel.id)}
-                >
-                  {/* 즐겨찾기 별 토글 버튼 */}
-                  <button
-                    type="button"
-                    className={`${styles.starBtn} ${
-                      favoriteWheelIds.includes(wheel.id) ? styles.starActive : ''
-                    }`}
-                    onClick={(e) => handleToggleFavorite(e, wheel.id)}
-                    title={favoriteWheelIds.includes(wheel.id) ? '즐겨찾기 해제' : '즐겨찾기 추가'}
-                  >
-                    ★
-                  </button>
-
-                  <div className={styles.wheelImageFrame}>
-                    <img
-                      src={wheel.image}
-                      alt={wheel.modelName}
-                      className={styles.wheelAssetImg}
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        if (e.currentTarget.nextElementSibling) {
-                          e.currentTarget.nextElementSibling.style.display = 'flex';
-                        }
-                      }}
-                    />
-                    <div className={styles.wheelDiscFallback} style={{ display: 'none' }}>
-                      <div className={styles.wheelSpokeCross} />
-                      <div className={styles.wheelCenterCap} />
-                    </div>
-                  </div>
-
-                  <div className={styles.wheelMeta}>
-                    <span className={styles.wheelBrandTag}>{wheel.brand}</span>
-                    <strong className={styles.wheelModelTitle}>{wheel.modelName}</strong>
-                  </div>
-
-                  {selectedWheelId === wheel.id && <div className={styles.checkBadge}>✓</div>}
-                </div>
-              ))}
-            </div>
-
-            <div className={styles.modalFooter}>
-              <button
-                type="button"
-                className={styles.modalConfirmBtn}
-                onClick={() => setIsWheelModalOpen(false)}
-              >
-                선택 완료
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <WheelCatalogModal
+        isOpen={isWheelModalOpen}
+        onClose={() => setIsWheelModalOpen(false)}
+        selectedWheelId={selectedWheelId}
+        onSelectWheel={handleSelectPresetWheel}
+        favoriteWheelIds={favoriteWheelIds}
+        onToggleFavorite={handleToggleFavorite}
+      />
     </div>
   );
 }

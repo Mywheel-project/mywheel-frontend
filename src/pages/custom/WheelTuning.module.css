@@ -86,7 +86,7 @@
   width: 100%;
   height: 320px;
   max-height: 380px;
-  background-color: #F7F7F8;
+  background-color: #fafafa;
   border: 2.5px dashed #D0D0D5;
   border-radius: 24px;
   display: flex;
@@ -106,7 +106,7 @@
 }
 
 .uploadCard.isDragging {
-  background-color: #FFF5F5;
+  background-color: #fafafa;
   border-color: #D40000;
   transform: scale(1.02);
   box-shadow: 0 8px 24px rgba(212, 0, 0, 0.15);
@@ -271,7 +271,7 @@
 .modalOpenCard {
   width: 100%;
   min-height: 236px;
-  background-color: #F7F7F8;
+  background-color: #fafafa;
   border: 2.5px dashed #D0D0D5;
   border-radius: 20px;
   display: flex;
@@ -405,7 +405,7 @@
 .addWheelCard {
   width: 100%;
   height: 70px;
-  background-color: #F7F7F8;
+  background-color: #fafafa;
   border: 2px dashed #D0D0D5;
   border-radius: 18px;
   display: flex;
@@ -801,6 +801,8 @@
 =================================================== */
 .actionGroup {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   width: 100%;
 }
@@ -977,4 +979,55 @@
 .btnIcon {
   width: 20px;
   height: 20px;
+}
+
+/* 상단 타이틀 행 및 잔여 배지 */
+.headerTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.headerTitleRow h2 {
+  margin-bottom: 0;
+}
+
+.limitBadge {
+  display: inline-flex;
+  align-items: center;
+  background-color: #111111;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  letter-spacing: -0.01em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.limitBadge strong {
+  color: #4ade80;
+  font-weight: 800;
+  margin: 0 0.2rem;
+}
+
+.limitBadge.limitExhausted {
+  background-color: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #d32f2f;
+}
+
+.limitBadge.limitExhausted strong {
+  color: #d32f2f;
+}
+
+.limitNotice {
+  margin-top: 0.9rem;
+  font-size: 0.9rem;
+  color: #777777;
+  font-weight: 500;
+  text-align: center;
 }

@@ -5,7 +5,10 @@ import carImg from '../assets/homepage/car_before.png';
 import { WHEEL_ASSETS } from '../data/wheels';
 
 import EditVehicleModal from '../components/EditVehicleModal';
+import ImageLightbox from '../components/ImageLightbox';
+import WheelCatalogModal from '../components/WheelCatalogModal';
 import styles from './MyPage.module.css';
+import { getCurrentUser, getStoredUserId, getAuthHeaders, saveSession } from '../utils/authStorage';
 
 const DEFAULT_WHEEL_DETAIL = {
   specs: [
@@ -34,20 +37,9 @@ const DEFAULT_WHEEL_DETAIL = {
 const VISIBLE_WHEELS = 3;
 const GALLERY_IMAGES_PER_PAGE = 6;
 
-// Header 에서 로그인 성공 시 저장하는 것과 동일한 localStorage 키.
-// 여기서는 로그인 여부 판단과 "내 id" 를 얻는 용도로만 사용하고,
+// localStorage 세션은 로그인 여부 판단과 "내 id" 를 얻는 용도로만 사용하고,
 // 실제 닉네임/이메일/프로필 사진은 항상 /users/me 를 호출해 DB 최신값을 받아온다.
-const USER_STORAGE_KEY = 'mywheel_user';
 const API_BASE_URL = 'http://localhost:8000';
-
-function getStoredUserId() {
-  try {
-    const saved = localStorage.getItem(USER_STORAGE_KEY);
-    return saved ? JSON.parse(saved)?.id ?? null : null;
-  } catch {
-    return null;
-  }
-}
 
 const DEFAULT_PROFILE = {
   name: '닉네임(이름)',
@@ -57,7 +49,7 @@ const DEFAULT_PROFILE = {
 
 function MyPage() {
   const [galleryPage, setGalleryPage] = useState(0);
-  const [wheelIndex, setWheelIndex] = useState(0);
+  const [wheelPage, setWheelPage] = useState(0);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [favoriteWheelIds, setFavoriteWheelIds] = useState([]);
   // 로그인하지 않았거나 아직 응답이 오기 전에는 기본값을 보여준다.
@@ -67,6 +59,9 @@ function MyPage() {
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
   // /custom/tuning 에서 만든 내 합성 사진 목록 (최근 생성 순).
   const [galleryImages, setGalleryImages] = useState([]);
+  // 갤러리 사진 클릭 시 원본 크기로 보여줄 이미지 URL.
+  const [lightboxImageUrl, setLightboxImageUrl] = useState(null);
+  const [isWheelCatalogOpen, setIsWheelCatalogOpen] = useState(false);
   // 회원 정보 수정(PUT /users/me) 요청 시 "나"를 식별하는 데 필요하다.
   const userId = getStoredUserId();
 
@@ -75,7 +70,7 @@ function MyPage() {
     if (!userId) return;
 
     fetch(`${API_BASE_URL}/users/me`, {
-      headers: { 'X-User-Id': String(userId) },
+      headers: { ...getAuthHeaders() },
     })
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => {
@@ -119,14 +114,21 @@ function MyPage() {
       image: w.image,
     }));
 
-  const maxIndex = Math.max(0, favoriteWheels.length - VISIBLE_WHEELS);
+  const wheelPageCount = Math.max(1, Math.ceil(favoriteWheels.length / VISIBLE_WHEELS));
+
+  // 즐겨찾기 목록이 줄어들어 현재 페이지가 범위를 벗어날 경우 보정
+  useEffect(() => {
+    if (wheelPage >= wheelPageCount) {
+      setWheelPage(Math.max(0, wheelPageCount - 1));
+    }
+  }, [wheelPageCount, wheelPage]);
 
   // 마운트 시 /vehicles/me 를 호출해 내가 등록해둔 차량(사진/제원)을 받아온다.
   useEffect(() => {
     if (!userId) return;
 
     fetch(`${API_BASE_URL}/vehicles/me`, {
-      headers: { 'X-User-Id': String(userId) },
+      headers: { ...getAuthHeaders() },
     })
       .then((response) => (response.ok ? response.json() : null))
       .then((data) => setVehicle(data ?? null))
@@ -140,7 +142,7 @@ function MyPage() {
     if (!userId) return;
 
     fetch(`${API_BASE_URL}/api/v1/custom/gallery`, {
-      headers: { 'X-User-Id': String(userId) },
+      headers: { ...getAuthHeaders() },
     })
       .then((response) => (response.ok ? response.json() : []))
       .then((data) => setGalleryImages(Array.isArray(data) ? data : []))
@@ -150,20 +152,59 @@ function MyPage() {
   }, [userId]);
 
   const prevWheels = () => {
-    setWheelIndex((prev) => Math.max(0, prev - 1));
+    setWheelPage((prev) => Math.max(0, prev - 1));
   };
 
   const nextWheels = () => {
-    setWheelIndex((prev) => Math.min(maxIndex, prev + 1));
+    setWheelPage((prev) => Math.min(wheelPageCount - 1, prev + 1));
   };
 
-  const visibleWheels = favoriteWheels.slice(wheelIndex, wheelIndex + VISIBLE_WHEELS);
+  const visibleWheels = favoriteWheels.slice(
+    wheelPage * VISIBLE_WHEELS,
+    wheelPage * VISIBLE_WHEELS + VISIBLE_WHEELS
+  );
 
   const galleryPageCount = Math.ceil(galleryImages.length / GALLERY_IMAGES_PER_PAGE);
   const visibleGalleryImages = galleryImages.slice(
     galleryPage * GALLERY_IMAGES_PER_PAGE,
     galleryPage * GALLERY_IMAGES_PER_PAGE + GALLERY_IMAGES_PER_PAGE,
   );
+
+  // 휠 즐겨찾기 토글 핸들러 (모달 및 마이페이지 동기화)
+  const handleToggleFavorite = async (e, wheelId) => {
+    e.stopPropagation();
+
+    const nextIds = favoriteWheelIds.includes(wheelId)
+      ? favoriteWheelIds.filter((id) => id !== wheelId)
+      : [...favoriteWheelIds, wheelId];
+    setFavoriteWheelIds(nextIds);
+    localStorage.setItem('mywheel_favorites', JSON.stringify(nextIds));
+
+    if (userId) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/v1/favorites/wheels/toggle`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeaders(),
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            wheel_id: wheelId,
+          }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data && Array.isArray(data.favorite_wheel_ids)) {
+            setFavoriteWheelIds(data.favorite_wheel_ids);
+            localStorage.setItem('mywheel_favorites', JSON.stringify(data.favorite_wheel_ids));
+          }
+        }
+      } catch (err) {
+        console.error('즐겨찾기 서버 동기화 실패:', err);
+      }
+    }
+  };
 
   // EditProfileModal 이 PUT /users/me 로 DB 수정까지 마친 뒤, 최신 유저 정보를 넘겨준다.
   const handleConfirmProfile = (updatedUser) => {
@@ -174,7 +215,8 @@ function MyPage() {
     }));
 
     // Header 가 localStorage 에서 닉네임을 읽으므로, 다음 새로고침에도 최신 값이 보이도록 갱신한다.
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+    // 응답에는 access_token 이 없으므로 기존 세션에 덮어써서 토큰을 유지한다.
+    saveSession({ ...getCurrentUser(), ...updatedUser });
   };
 
   return (
@@ -226,21 +268,52 @@ function MyPage() {
               </button>
             </div>
             <div className={styles.carImageWrap}>
-              <img
-                src={vehicle?.image_url ?? carImg}
-                alt={vehicle?.name ?? '차량 사진 없음'}
-                className={styles.carImage}
-              />
+              {vehicle?.image_url ? (
+                <img
+                  src={vehicle.image_url}
+                  alt={vehicle.name || '차량 사진'}
+                  className={styles.carImage}
+                />
+              ) : (
+                <div 
+                  className={styles.emptyCarPlaceholder}
+                  onClick={() => setIsVehicleModalOpen(true)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
+                    <circle cx="7" cy="17" r="2" />
+                    <path d="M9 17h6" />
+                    <circle cx="17" cy="17" r="2" />
+                  </svg>
+                  <span className={styles.placeholderText}>
+                    {vehicle ? '등록된 차량 사진이 없습니다' : '차량을 등록하고 사진을 추가해보세요'}
+                  </span>
+                </div>
+              )}
             </div>
             {vehicle ? (
-              <ul className={styles.specList}>
-                <li>PCD : {vehicle.pcd || '-'}</li>
-                <li>홀 수 : {vehicle.hole_count || '-'}</li>
-                <li>허브 보어 : {vehicle.hub_bore || '-'}</li>
-                <li>볼트 규격 : {vehicle.bolt_spec || '-'}</li>
-              </ul>
+              <div className={styles.specGrid}>
+                <div className={styles.specItem}>
+                  <span className={styles.specLabel}>PCD</span>
+                  <span className={styles.specValue}>{vehicle.pcd || '-'}</span>
+                </div>
+                <div className={styles.specItem}>
+                  <span className={styles.specLabel}>홀 수</span>
+                  <span className={styles.specValue}>{vehicle.hole_count || '-'}</span>
+                </div>
+                <div className={styles.specItem}>
+                  <span className={styles.specLabel}>허브 보어</span>
+                  <span className={styles.specValue}>{vehicle.hub_bore || '-'}</span>
+                </div>
+                <div className={styles.specItem}>
+                  <span className={styles.specLabel}>볼트 규격</span>
+                  <span className={styles.specValue}>{vehicle.bolt_spec || '-'}</span>
+                </div>
+              </div>
             ) : (
-              <p className={styles.specList}>차량을 등록하면 사진과 제원이 표시됩니다.</p>
+              <p className={styles.emptyVehicleDesc}>차량을 등록하면 사진과 상세 제원이 표시됩니다.</p>
             )}
           </section>
         </div>
@@ -255,7 +328,7 @@ function MyPage() {
                 사진 생성
               </Link>
             </div>
-            <div className={styles.galleryInner}>
+            <div>
               {galleryImages.length === 0 ? (
                 <p className={styles.galleryEmpty}>
                   아직 생성한 사진이 없습니다. 휠 튜닝에서 만들어보세요!
@@ -264,9 +337,15 @@ function MyPage() {
                 <>
                   <div className={styles.galleryGrid}>
                     {visibleGalleryImages.map((image) => (
-                      <div key={image.id} className={styles.galleryItem}>
+                      <button
+                        key={image.id}
+                        type="button"
+                        className={styles.galleryItem}
+                        onClick={() => setLightboxImageUrl(image.image_url)}
+                        aria-label="원본 크기로 보기"
+                      >
                         <img src={image.image_url} alt="내가 생성한 튜닝 사진" />
-                      </div>
+                      </button>
                     ))}
                   </div>
                   {galleryPageCount > 1 && (
@@ -291,14 +370,23 @@ function MyPage() {
 
           {/* 휠 즐겨찾기 */}
           <section className={`${styles.card} ${styles.favoritesCard}`}>
-            <h2 className={styles.cardTitle}>휠 즐겨찾기 ({favoriteWheels.length}개)</h2>
+            <div className={styles.cardHeader}>
+              <h2 className={styles.cardTitle}>휠 즐겨찾기 ({favoriteWheels.length}개)</h2>
+              <button
+                type="button"
+                className={styles.redBtn}
+                onClick={() => setIsWheelCatalogOpen(true)}
+              >
+                휠 둘러보기 +
+              </button>
+            </div>
             {favoriteWheels.length > 0 ? (
               <div className={styles.carousel}>
                 <button
                   type="button"
                   className={styles.arrowBtn}
                   onClick={prevWheels}
-                  disabled={wheelIndex === 0}
+                  disabled={wheelPage === 0}
                   aria-label="이전 휠"
                 >
                   ◀
@@ -317,7 +405,7 @@ function MyPage() {
                   type="button"
                   className={styles.arrowBtn}
                   onClick={nextWheels}
-                  disabled={wheelIndex >= maxIndex}
+                  disabled={wheelPage >= wheelPageCount - 1}
                   aria-label="다음 휠"
                 >
                   ▶
@@ -326,9 +414,13 @@ function MyPage() {
             ) : (
               <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#888' }}>
                 <p style={{ margin: '0 0 1rem 0' }}>즐겨찾기한 휠이 없습니다.</p>
-                <Link to="/custom" className={styles.redBtn}>
+                <button
+                  type="button"
+                  className={styles.redBtn}
+                  onClick={() => setIsWheelCatalogOpen(true)}
+                >
                   휠 둘러보기
-                </Link>
+                </button>
               </div>
             )}
           </section>
@@ -338,7 +430,6 @@ function MyPage() {
       <EditProfileModal
         isOpen={isEditOpen}
         onClose={() => setIsEditOpen(false)}
-        userId={userId}
         initialName={profile.name}
         initialEmail={profile.email}
         onConfirm={handleConfirmProfile}
@@ -346,9 +437,19 @@ function MyPage() {
       <EditVehicleModal
         isOpen={isVehicleModalOpen}
         onClose={() => setIsVehicleModalOpen(false)}
-        userId={userId}
         vehicle={vehicle}
         onConfirm={(updatedVehicle) => setVehicle(updatedVehicle)}
+      />
+      <ImageLightbox
+        isOpen={!!lightboxImageUrl}
+        imageUrl={lightboxImageUrl}
+        onClose={() => setLightboxImageUrl(null)}
+      />
+      <WheelCatalogModal
+        isOpen={isWheelCatalogOpen}
+        onClose={() => setIsWheelCatalogOpen(false)}
+        favoriteWheelIds={favoriteWheelIds}
+        onToggleFavorite={handleToggleFavorite}
       />
     </div>
   );
