@@ -35,7 +35,7 @@ function Header() {
 
   const handleLogout = () => {
     clearSession();
-    window.location.reload();
+    window.location.href = '/';
   };
 
   const isCommunityActive = location.pathname.startsWith('/community') || location.pathname.startsWith('/posts');
@@ -73,7 +73,6 @@ function Header() {
             onClick={requireLogin}
             className={({ isActive }) =>
               isActive ? `${styles.navLink} ${styles.active}` : styles.navLink
-
             }
           >
             COMMUNITY
