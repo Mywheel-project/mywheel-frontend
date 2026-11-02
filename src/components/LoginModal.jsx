@@ -1,8 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import styles from './LoginModal.module.css';
 
-// FastAPI 백엔드 주소. 배포 시에는 .env(VITE_API_BASE_URL)로 분리하는 게 좋다.
-const API_BASE_URL = 'http://localhost:8000';
+// FastAPI 백엔드 주소. .env(VITE_API_URL)에서 불러온다.
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // Google Cloud Console 에서 발급받은 OAuth 클라이언트 ID. (frontend/.env.local)
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;

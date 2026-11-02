@@ -9,7 +9,7 @@ import WheelCatalogModal from '../../components/WheelCatalogModal';
 
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 function WheelTuning() {
   // 1. 차량 사진 관련 State

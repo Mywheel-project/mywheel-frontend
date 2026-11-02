@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import styles from './EditProfileModal.module.css';
 import { getAuthHeaders } from '../utils/authStorage';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 function EditProfileModal({
   isOpen,

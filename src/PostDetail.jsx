@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styles from './Community.module.css'; 
 import { getStoredUserId, getAuthHeaders } from './utils/authStorage';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 
 export default function PostDetail() {
   const { id } = useParams();
@@ -18,7 +20,7 @@ export default function PostDetail() {
   useEffect(() => {
     const fetchComments = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/posts/${id}/comments`);
+        const response = await fetch(`${API_BASE_URL}/api/posts/${id}/comments`);
         if (response.ok) {
           const data = await response.json();
           setComments(data);
@@ -31,7 +33,7 @@ export default function PostDetail() {
     const fetchPostDetail = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8000/api/posts/${id}`, {
+        const response = await fetch(`${API_BASE_URL}/api/posts/${id}`, {
           headers: { ...getAuthHeaders() },
         });
         if (response.ok) {
@@ -62,7 +64,7 @@ export default function PostDetail() {
     setIsLiking(true);
 
     try {
-      const response = await fetch(`http://localhost:8000/api/posts/${id}/like`, {
+      const response = await fetch(`${API_BASE_URL}/api/posts/${id}/like`, {
         method: 'POST',
         headers: {
           ...getAuthHeaders(),
@@ -102,7 +104,7 @@ export default function PostDetail() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/posts/${id}/comments`, {
+      const response = await fetch(`${API_BASE_URL}/api/posts/${id}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +133,7 @@ export default function PostDetail() {
     if (!window.confirm('정말 삭제하시겠습니까?')) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/posts/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/posts/${id}`, {
         method: 'DELETE',
         headers: {
           ...getAuthHeaders(),

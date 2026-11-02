@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './MapPage.module.css';
 
-// FastAPI 백엔드 주소. 배포 시에는 .env(VITE_API_BASE_URL)로 분리하는 게 좋다.
-const API_BASE_URL = 'http://localhost:8000';
+// FastAPI 백엔드 주소. .env(VITE_API_URL)에서 불러온다.
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // 서울시청 - 위치 권한을 거부했거나 가져오지 못했을 때 쓰는 기본 지도 중심 좌표
 const DEFAULT_CENTER = { lat: 37.5665, lng: 126.978 };

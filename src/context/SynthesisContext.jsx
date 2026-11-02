@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import { getCustomAuthHeaders } from '../utils/customLimit';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const SynthesisContext = createContext(null);
 

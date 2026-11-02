@@ -39,7 +39,7 @@ const GALLERY_IMAGES_PER_PAGE = 6;
 
 // localStorage 세션은 로그인 여부 판단과 "내 id" 를 얻는 용도로만 사용하고,
 // 실제 닉네임/이메일/프로필 사진은 항상 /users/me 를 호출해 DB 최신값을 받아온다.
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const DEFAULT_PROFILE = {
   name: '닉네임(이름)',
