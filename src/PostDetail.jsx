@@ -73,7 +73,7 @@ export default function PostDetail() {
         const data = await response.json();
         setPost((prev) => ({
           ...prev,
-          liked_by_me: data.liked,
+          liked_by_me: data.liked_by_me,
           likes_count: data.likes_count,
         }));
       } else {
