@@ -1,13 +1,20 @@
+/* 높이는 MapPage.jsx 에서 "화면 높이 - 헤더 높이" 로 맞춘다. */
 .page {
   width: 100%;
-  padding: 1.5rem 3rem;
+  height: calc(100dvh - 80px); /* JS 측정 전 기본값 */
+  padding: 1rem 3rem;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
+/* 지도는 지점 목록을 뺀 남은 공간을 모두 차지한다. */
 .mapWrapper {
   position: relative;
+  flex: 1 1 auto;
+  min-height: 280px;
   width: 100%;
-  height: 70vh;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -62,9 +69,178 @@
 }
 
 .errorText {
-  margin: 0 0 1rem;
+  margin: 0;
   color: #e03131;
   font-weight: 600;
+}
+
+/* 지도 왼쪽 하단 "내 위치로 이동" 버튼 (네이버 로고/축척 위로 띄움) */
+.locateBtn {
+  position: absolute;
+  left: 12px;
+  bottom: 40px;
+  z-index: 5;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #3b82f6;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.locateBtn:hover {
+  background-color: #f1f5f9;
+}
+
+.locateBtn:active {
+  transform: scale(0.94);
+}
+
+.locateBtn:disabled {
+  color: #94a3b8;
+  cursor: wait;
+}
+
+.locateBtn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.notice {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  z-index: 6;
+  margin: 0;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  background-color: rgba(15, 23, 42, 0.85);
+  color: #ffffff;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+/* 지도 아래 주변 휠 튜닝 지점 소개 */
+.shopSection {
+  flex: 0 0 auto;
+  padding: 0.8rem 1.1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background-color: #ffffff;
+}
+
+.shopHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.shopBadge {
+  display: inline-block;
+  margin-bottom: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background-color: #eff6ff;
+  color: #3b82f6;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.shopTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.shopDesc {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.shopCount {
+  flex-shrink: 0;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background-color: #f1f5f9;
+  color: #334155;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.shopEmpty {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* 지점 카드는 가로 한 줄로 두고 넘치면 가로 스크롤 → 세로 높이를 고정 */
+.shopList {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0 0 0.35rem;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 230px;
+  gap: 0.6rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.shopCard {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid #3b82f6;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s, box-shadow 0.15s;
+}
+
+.shopCard:hover {
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+}
+
+.shopName {
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.shopMeta {
+  font-size: 0.78rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding: 0.75rem 1rem;
+  }
+
+  .shopDesc {
+    display: none;
+  }
 }
 
 /* 정비업체 핀(빨간 마커)과 구분되는 내 위치 파란 점 */

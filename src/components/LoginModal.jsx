@@ -7,6 +7,11 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 // Google Cloud Console 에서 발급받은 OAuth 클라이언트 ID. (frontend/.env.local)
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
+// google.accounts.id.initialize() 는 페이지에서 한 번만 호출해야 한다.
+// 실제 로그인 처리는 googleCallbackRef 에 담긴 최신 함수로 넘긴다.
+let googleInitialized = false;
+const googleCallbackRef = { current: null };
+
 function LoginModal({ isOpen, onClose, onOpenSignup, onLoginSuccess }) {
   const titleId = useId();
   const [email, setEmail] = useState('');
@@ -17,6 +22,12 @@ function LoginModal({ isOpen, onClose, onOpenSignup, onLoginSuccess }) {
   // Google Identity Services 가 실제 로그인 버튼(iframe)을 그려 넣을 컨테이너.
   // 우리 디자인의 googleBtn 위에 투명하게 겹쳐서, 클릭은 구글 버튼이 받고 화면엔 우리 버튼만 보이게 한다.
   const googleButtonRef = useRef(null);
+  // 구글 콜백에서 항상 최신 onLoginSuccess 를 부르기 위한 ref.
+  // (콜백을 바꿀 때마다 initialize 를 다시 부르지 않기 위해)
+  const onLoginSuccessRef = useRef(onLoginSuccess);
+  useEffect(() => {
+    onLoginSuccessRef.current = onLoginSuccess;
+  }, [onLoginSuccess]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -41,12 +52,31 @@ function LoginModal({ isOpen, onClose, onOpenSignup, onLoginSuccess }) {
 
   useEffect(() => {
     if (!isOpen || !GOOGLE_CLIENT_ID) return;
-    // index.html 에서 로드한 GIS 스크립트가 아직 준비 안 됐을 수 있으니 방어적으로 체크.
-    if (!window.google?.accounts?.id || !googleButtonRef.current) return;
 
-    window.google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: async ({ credential }) => {
+    let cancelled = false;
+    let retryTimer = null;
+
+    const renderGoogleButton = () => {
+      if (cancelled) return;
+
+      // index.html 에서 async 로 불러오는 GIS 스크립트가 아직 준비 안 됐으면
+      // 준비될 때까지 잠깐씩 기다렸다가 다시 시도한다.
+      if (!window.google?.accounts?.id || !googleButtonRef.current) {
+        retryTimer = setTimeout(renderGoogleButton, 200);
+        return;
+      }
+
+      // initialize 는 페이지당 한 번만 호출한다 (여러 번 부르면 GSI 경고 + 오동작).
+      if (!googleInitialized) {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: (response) => googleCallbackRef.current?.(response),
+        });
+        googleInitialized = true;
+      }
+
+      // 지금 열린 모달의 처리 함수로 콜백을 연결한다.
+      googleCallbackRef.current = async ({ credential }) => {
         setErrorMessage('');
         try {
           const response = await fetch(`${API_BASE_URL}/auth/google`, {
@@ -61,21 +91,28 @@ function LoginModal({ isOpen, onClose, onOpenSignup, onLoginSuccess }) {
             throw new Error(typeof detail === 'string' ? detail : '구글 로그인에 실패했습니다.');
           }
 
-          onLoginSuccess(body);
+          onLoginSuccessRef.current?.(body);
         } catch (error) {
           setErrorMessage(error.message);
         }
-      },
-    });
+      };
 
-    // 매번 다시 그려도 되도록 비워준다 (모달을 여러 번 열 때 중복 렌더 방지).
-    googleButtonRef.current.innerHTML = '';
-    window.google.accounts.id.renderButton(googleButtonRef.current, {
-      type: 'icon',
-      shape: 'circle',
-      size: 'large',
-    });
-  }, [isOpen, onLoginSuccess]);
+      // 모달을 열 때마다 버튼을 한 번만 새로 그린다.
+      googleButtonRef.current.innerHTML = '';
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        type: 'icon',
+        shape: 'circle',
+        size: 'large',
+      });
+    };
+
+    renderGoogleButton();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(retryTimer);
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

@@ -14,6 +14,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 // RESEND_COOLDOWN_SECONDS(auth.py) 와 맞춰둔다.
 const RESEND_COOLDOWN_SECONDS = 60;
 
+// 비밀번호 규칙: 영문 1자 이상 + 숫자 1자 이상 포함, 8자 이상.
+const PASSWORD_RULE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+const PASSWORD_RULE_MESSAGE = '비밀번호는 영문과 숫자를 섞어 8자 이상 입력해주세요.';
+
 function SignupModal({ isOpen, onClose, onSignupSuccess }) {
   const titleId = useId();
   const [nickname, setNickname] = useState('');
@@ -125,6 +129,11 @@ function SignupModal({ isOpen, onClose, onSignupSuccess }) {
     );
     if (!requiredAgreed) {
       setErrorMessage('필수 약관에 동의해주세요.');
+      return;
+    }
+
+    if (!PASSWORD_RULE.test(password)) {
+      setErrorMessage(PASSWORD_RULE_MESSAGE);
       return;
     }
 
@@ -260,35 +269,42 @@ function SignupModal({ isOpen, onClose, onSignupSuccess }) {
             />
           </label>
 
-          <label className={styles.field}>
-            <span className={styles.icon} aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect
-                  x="5"
-                  y="10"
-                  width="14"
-                  height="10"
-                  rx="2"
-                  stroke="#9A9A9A"
-                  strokeWidth="1.8"
-                />
-                <path
-                  d="M8 10V7.5a4 4 0 0 1 8 0V10"
-                  stroke="#9A9A9A"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </span>
-            <input
-              type="password"
-              className={styles.input}
-              placeholder="비밀번호"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              autoComplete="new-password"
-            />
-          </label>
+          <div className={styles.passwordConfirmGroup}>
+            <label className={styles.field}>
+              <span className={styles.icon} aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect
+                    x="5"
+                    y="10"
+                    width="14"
+                    height="10"
+                    rx="2"
+                    stroke="#9A9A9A"
+                    strokeWidth="1.8"
+                  />
+                  <path
+                    d="M8 10V7.5a4 4 0 0 1 8 0V10"
+                    stroke="#9A9A9A"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
+              <input
+                type="password"
+                className={styles.input}
+                placeholder="비밀번호"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="new-password"
+              />
+            </label>
+            {password && !PASSWORD_RULE.test(password) ? (
+              <p className={styles.errorText}>{PASSWORD_RULE_MESSAGE}</p>
+            ) : (
+              <p className={styles.helperText}>영문 + 숫자 조합 8자 이상</p>
+            )}
+          </div>
 
           <div className={styles.passwordConfirmGroup}>
             <label className={styles.field}>
