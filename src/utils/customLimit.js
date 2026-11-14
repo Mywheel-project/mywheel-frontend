@@ -3,7 +3,7 @@
 import { getAuthHeaders } from './authStorage';
 
 const CLIENT_STORAGE_KEY = 'mywheel_client_id';
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 /**
  * 비로그인 사용자 브라우저 고유 UUID 반환 (없으면 새로 발급하여 저장)

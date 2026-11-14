@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import styles from './Community.module.css'; 
 import { getStoredUserId, getAuthHeaders } from './utils/authStorage';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 
 export default function PostList() {
   const navigate = useNavigate();
@@ -21,8 +23,8 @@ export default function PostList() {
     try {
       setLoading(true);
       const url = keyword
-        ? `http://localhost:8000/api/posts?search=${encodeURIComponent(keyword)}`
-        : 'http://localhost:8000/api/posts';
+        ? `${API_BASE_URL}/api/posts?search=${encodeURIComponent(keyword)}`
+        : `${API_BASE_URL}/api/posts`;
       const response = await fetch(url, { headers: { ...getAuthHeaders() } });
 
       if (response.ok) {
@@ -39,7 +41,7 @@ export default function PostList() {
   };
  const fetchHotPosts = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/posts/hot', {
+      const response = await fetch(`${API_BASE_URL}/api/posts/hot`, {
         headers: { ...getAuthHeaders() },
       });
       if (response.ok) {
@@ -53,7 +55,7 @@ export default function PostList() {
 
   // const fetchHotPosts = async () => {
   //   try {
-  //     const response = await fetch('http://localhost:8000/api/posts/hot');
+  //     const response = await fetch(`${API_BASE_URL}/api/posts/hot`);
   //     if (response.ok) {
   //       const data = await response.json();
   //       setHotPosts(data);

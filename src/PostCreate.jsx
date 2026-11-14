@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { getStoredUserId, getAuthHeaders } from './utils/authStorage';
 import styles from './Community.module.css'; 
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 
 
 function PostCreate() {
@@ -54,7 +56,7 @@ function PostCreate() {
           formData.append('images', file);
         });
 
-        const response = await fetch('http://localhost:8000/api/posts', {
+        const response = await fetch(`${API_BASE_URL}/api/posts`, {
           method: 'POST',
           headers: {
             ...getAuthHeaders(),

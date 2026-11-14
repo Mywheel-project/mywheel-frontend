@@ -7,8 +7,8 @@ const TERMS = [
   { key: 'marketing', label: '마케팅 수신 동의(선택)', required: false },
 ];
 
-// FastAPI 백엔드 주소. 배포 시에는 .env(VITE_API_BASE_URL)로 분리하는 게 좋다.
-const API_BASE_URL = 'http://localhost:8000';
+// FastAPI 백엔드 주소. .env(VITE_API_URL)에서 불러온다.
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // 재전송 버튼을 눌렀을 때 다시 활성화되기까지 기다리는 시간(초). 백엔드의
 // RESEND_COOLDOWN_SECONDS(auth.py) 와 맞춰둔다.

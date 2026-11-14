@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styles from './Community.module.css'; 
 import { getStoredUserId, getAuthHeaders } from './utils/authStorage';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 
 function PostEdit() {
   const { id } = useParams();
@@ -28,7 +30,7 @@ function PostEdit() {
     const fetchPost = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:8000/api/posts/${id}`);
+        const response = await fetch(`${API_BASE_URL}/api/posts/${id}`);
         if (response.ok) {
           const data = await response.json();
 
@@ -113,7 +115,7 @@ function PostEdit() {
         formData.append('images', file);
       });
 
-      const response = await fetch(`http://localhost:8000/api/posts/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/posts/${id}`, {
         method: 'PUT',
         headers: {
           ...getAuthHeaders(),
