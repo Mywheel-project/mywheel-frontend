@@ -47,6 +47,45 @@
   box-sizing: border-box;
 }
 
+/* 휠 전용 입력 카드 */
+.wheelInputCard {
+  padding: 0 0.5rem 0 0.9rem;
+  gap: 0.4rem;
+}
+
+/* 선택된 휠 미니 썸네일 */
+.wheelThumbWrapper {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1.5px solid #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.selectedWheelThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .searchInput {
   width: 100%;
   border: none;
@@ -58,8 +97,76 @@
   text-align: center;
 }
 
+.searchInputWithThumb {
+  text-align: left;
+  padding-left: 0.3rem;
+}
+
 .searchInput::placeholder {
   color: #888;
+}
+
+/* 텍스트 원클릭 클리어 버튼 */
+.clearBtn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: #e5e5e5;
+  color: #555555;
+  border: none;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.clearBtn:hover {
+  background-color: #d40000;
+  color: #ffffff;
+}
+
+/* 카탈로그 열기 버튼 */
+.catalogOpenBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 44px;
+  padding: 0 1.1rem;
+  background-color: #111111;
+  color: #ffffff;
+  border: none;
+  border-radius: 30px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.catalogOpenBtn:hover:not(:disabled) {
+  background-color: #d40000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(212, 0, 0, 0.25);
+}
+
+.catalogOpenBtn:disabled {
+  background-color: #888;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.catalogBtnIcon {
+  font-size: 0.95rem;
+}
+
+.catalogBtnLabel {
+  white-space: nowrap;
 }
 
 .searchBtn {
@@ -244,4 +351,29 @@
   color: #777777;
   font-weight: 500;
   text-align: center;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+  .searchFormWrapper {
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+  }
+
+  .inputCard {
+    width: 100%;
+    height: 54px;
+  }
+
+  .catalogOpenBtn {
+    height: 38px;
+    padding: 0 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .searchBtn {
+    width: 100%;
+    height: 50px;
+  }
 }
